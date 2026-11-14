@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ai import get_embedder
 from ai.factory import embedding_model_name
 from ai.providers.base import AIError
-from app.core.constants import SIMILARITY_THRESHOLD, SIMILARITY_THRESHOLD_DEFAULT
+from app.core.constants import EMBEDDING_THRESHOLDS, EMBEDDING_THRESHOLDS_DEFAULT
 from app.models import Listing
 
 log = logging.getLogger("embeddings")
@@ -22,8 +22,9 @@ def embed_text(text: str) -> list[float] | None:
         return None
 
 
-def similarity_threshold() -> float:
-    return SIMILARITY_THRESHOLD.get(embedding_model_name(), SIMILARITY_THRESHOLD_DEFAULT)
+def thresholds() -> dict[str, float]:
+    """현재 임베딩 모델의 유사도 기준 (price / match / relative)."""
+    return EMBEDDING_THRESHOLDS.get(embedding_model_name(), EMBEDDING_THRESHOLDS_DEFAULT)
 
 
 def listing_text(listing: Listing) -> str:

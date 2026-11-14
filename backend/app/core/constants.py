@@ -42,20 +42,26 @@ MATCH_WEIGHT_RATING = 0.2
 MATCH_WEIGHT_ACTIVITY = 0.1
 MATCH_RATING_PRIOR = 3.5
 MATCH_RATING_PRIOR_WEIGHT = 3
-# 매칭 후보 최소 유사도 = 가격 제안 기준(SIMILARITY_THRESHOLD) - 이 값.
-#  bge-m3 실측(2026-11-14): 관련 0.57~0.67, 무관 0.46~0.51 → 기준 0.52
-MATCH_MIN_SIMILARITY_MARGIN = 0.03
-# 1등보다 이만큼 이상 낮은 후보는 빼요 (관련 없는 사람이 섞이지 않게)
-MATCH_RELATIVE_CUTOFF = 0.12
+# ---- 임베딩 유사도 기준 (모델마다 점수 분포가 달라서 따로 둬요) ----
+#  price    : 시세 계산에 '비슷한 재능'으로 셀 최소 유사도 (엄격)
+#  match    : 매칭 후보로 보여 줄 최소 유사도
+#  relative : 1등보다 이만큼 이상 낮으면 빼요 (관련 없는 사람·상품이 섞이지 않게)
+#  strong   : 이 이상이면 1등과의 차이와 상관없이 남겨요 (1등이 아주 높을 때 관련 있는 2등이 잘리지 않게)
+# 실측 (2026-11-14, 질문 7개 × 재능 7개):
+#  - bge-m3              관련 min 0.49 / avg 0.63, 무관 max 0.47 / avg 0.38
+#  - gemini-embedding-001 관련 min 0.85 / avg 0.89, 무관 max 0.83 / avg 0.75 (점수가 위쪽에 몰려 있음)
+# 데모 리허설: 1등 0.83, 관련 있는 2등 0.63이 relative만으로는 잘려서 strong 추가
+EMBEDDING_THRESHOLDS: dict[str, dict[str, float]] = {
+    "BAAI/bge-m3": {"price": 0.55, "match": 0.48, "relative": 0.12, "strong": 0.58},
+    "gemini-embedding-001": {"price": 0.86, "match": 0.84, "relative": 0.05, "strong": 0.87},
+    "mock-ngram": {"price": 0.25, "match": 0.22, "relative": 0.12, "strong": 0.35},
+}
+EMBEDDING_THRESHOLDS_DEFAULT = EMBEDDING_THRESHOLDS["BAAI/bge-m3"]
 
 # ---- 부탁 쪼개기 적정 토큰 (5단계에서 사용) ----
 # 비슷한 상품 가격의 중앙값을 쓰고, 비슷한 상품이 이 개수보다 적으면 AI 추정으로 넘어가요.
 PRICE_SUGGEST_MIN_SIMILAR = 3
 PRICE_SUGGEST_TOP_K = 5
-# 코사인 유사도 기준. 임베딩 모델마다 점수 분포가 달라서 따로 둬요.
-#  - bge-m3 실측: 관련 있는 문장 ≈ 0.64, 관련 없는 문장 ≈ 0.35
-SIMILARITY_THRESHOLD = {"BAAI/bge-m3": 0.55, "mock-ngram": 0.25}
-SIMILARITY_THRESHOLD_DEFAULT = 0.55
 PRICE_FALLBACK_TOKENS = 30  # 시세도 AI 추정도 없을 때 (예: 사용자가 직접 추가한 활동)
 
 # ---- 부탁 쪼개기 ----

@@ -57,6 +57,20 @@ def test_talent_only_person_gets_their_listing_linked(client: TestClient) -> Non
     assert ppt["listing"]["title"] == "자료 봐 드려요"
 
 
+def test_strong_second_candidate_is_kept_even_if_top_is_much_higher(monkeypatch: pytest.MonkeyPatch, client: TestClient) -> None:
+    """데모 리허설에서 발견: 1등 0.83, 관련 있는 2등 0.63이 상대 기준만으로 잘리던 문제."""
+    from app.services import embeddings
+
+    monkeypatch.setattr(embeddings, "thresholds", lambda: {"price": 0.55, "match": 0.48, "relative": 0.12, "strong": 0.58})
+    monkeypatch.setattr(matching, "thresholds", embeddings.thresholds)
+    sims = {"a": 0.83, "b": 0.63, "c": 0.5}
+    cands = {i: matching._Cand(i, similarity=s) for i, s in enumerate(sims.values())}
+    th = matching.thresholds()
+    top = max(c.similarity for c in cands.values())
+    kept = [c.similarity for c in cands.values() if c.similarity >= th["match"] and (c.similarity >= th["strong"] or c.similarity >= top - th["relative"])]
+    assert kept == [0.83, 0.63]
+
+
 def test_unrelated_query_returns_no_candidates(client: TestClient) -> None:
     _people(client)
     me = Actor(client, "me@example.com", "새내기")

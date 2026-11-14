@@ -26,6 +26,10 @@ def get_embedder() -> EmbeddingProvider:
         from ai.providers.local_embed import LocalEmbedder
 
         return LocalEmbedder(s.embedding_model, s.embedding_dim)
+    if s.embedding_provider == "gemini":
+        from ai.providers.gemini_embed import GeminiEmbedder
+
+        return GeminiEmbedder(s.gemini_api_key, s.embedding_model, s.embedding_dim)
     raise AIError(f"지원하지 않는 EMBEDDING_PROVIDER: {s.embedding_provider}")
 
 

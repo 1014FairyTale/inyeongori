@@ -23,13 +23,11 @@ from app.core.constants import (
     MATCH_WEIGHT_ACTIVITY,
     MATCH_WEIGHT_RATING,
     MATCH_WEIGHT_SIMILARITY,
-    MATCH_MIN_SIMILARITY_MARGIN,
-    MATCH_RELATIVE_CUTOFF,
 )
 from app.models import Exchange, ExchangeStatus, Listing, ListingStatus, User, UserTalent
 from app.schemas.market import UserBrief
 from app.schemas.match import MatchCandidate, MatchedListing
-from app.services.embeddings import embed_text, similarity_threshold
+from app.services.embeddings import embed_text, thresholds
 from app.services.reviews import rating_stats
 
 log = logging.getLogger("matching")
@@ -160,12 +158,14 @@ def match(db: Session, query: str, *, limit: int = 5, exclude_user_id: int | Non
         raise AIError("요청 문장을 분석하지 못했어요. 잠시 후 다시 시도해 주세요", feature="match")
 
     cands = _collect(db, vec, exclude_user_id)
-    min_sim = similarity_threshold() - MATCH_MIN_SIMILARITY_MARGIN
-    cands = {uid: c for uid, c in cands.items() if c.similarity >= min_sim}
+    th = thresholds()
+    cands = {uid: c for uid, c in cands.items() if c.similarity >= th["match"]}
     if not cands:
         return []
     top_sim = max(c.similarity for c in cands.values())
-    cands = {uid: c for uid, c in cands.items() if c.similarity >= top_sim - MATCH_RELATIVE_CUTOFF}
+    cands = {
+        uid: c for uid, c in cands.items() if c.similarity >= th["strong"] or c.similarity >= top_sim - th["relative"]
+    }
 
     users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(list(cands))))}
     stats = provider_stats(db, list(cands))
