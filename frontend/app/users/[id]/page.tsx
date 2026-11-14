@@ -2,7 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { api, ApiError, type Listing, type Page, type PublicProfile } from "@/lib/api";
+import { api, ApiError, type Listing, type Page, type PublicProfile, type PublicReview } from "@/lib/api";
+import { formatDate } from "@/lib/format";
 import { AiBadge } from "@/components/AiBadge";
 import { ListingCard } from "@/components/ListingCard";
 import { Card, ErrorBox } from "@/components/ui";
@@ -11,6 +12,7 @@ function Profile() {
   const { id } = useParams<{ id: string }>();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20,6 +22,9 @@ function Profile() {
     api<Page<Listing>>(`/listings?provider_id=${id}`)
       .then((p) => setListings(p.items))
       .catch(() => setListings([]));
+    api<PublicReview[]>(`/users/${id}/reviews`)
+      .then(setReviews)
+      .catch(() => setReviews([]));
   }, [id]);
 
   if (error) return <ErrorBox message={error} />;
@@ -59,6 +64,31 @@ function Profile() {
           <p className="text-sm text-muted">아직 올린 상품이 없어요.</p>
         ) : (
           listings.map((l) => <ListingCard key={l.id} listing={l} />)
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-bold">받은 후기 {reviews.length > 0 && <span className="text-muted">{reviews.length}</span>}</h2>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted">아직 받은 후기가 없어요.</p>
+        ) : (
+          <ul className="space-y-2">
+            {reviews.map((r) => (
+              <li key={r.id} className="space-y-1 rounded-2xl border border-border bg-card p-4 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-amber-400">{"★".repeat(r.rating)}<span className="text-border">{"★".repeat(5 - r.rating)}</span></span>
+                  <span className="text-xs text-muted">{formatDate(r.created_at)}</span>
+                </div>
+                <p>{r.good_text}</p>
+                {r.bad_text && <p className="text-muted">아쉬운 점: {r.bad_text}</p>}
+                <p className="text-xs text-muted">
+                  {r.reviewer_nickname}
+                  {r.listing_title && ` · ${r.listing_title}`}
+                  {r.bonus > 0 && <span className="font-semibold text-brand"> · 🎁 AI 보너스 +{r.bonus}</span>}
+                </p>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
     </div>

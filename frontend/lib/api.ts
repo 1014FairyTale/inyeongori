@@ -162,7 +162,8 @@ export type ExchangeAction =
   | "request_cancel"
   | "approve_cancel"
   | "decline_cancel"
-  | "complete";
+  | "complete"
+  | "review";
 
 export interface Exchange {
   id: number;
@@ -180,6 +181,7 @@ export interface Exchange {
   agreement: Agreement;
   agreement_versions: number;
   actions: ExchangeAction[];
+  has_review: boolean;
   created_at: string;
   accepted_at: string | null;
   completed_at: string | null;
@@ -325,6 +327,45 @@ export interface PublicProfile {
   completed_count: number;
   rating_avg: number | null;
   rating_count: number;
+}
+
+export interface ReviewAnalysis {
+  contribution_score: number;
+  summary: string;
+  reasons: string[];
+  flags: string[];
+  eligible: boolean;
+  base_bonus: number;
+  final_bonus: number;
+  adjustments: { rule: string; message: string; before: number | null; after: number | null }[];
+  created_at: string;
+}
+
+export interface ReviewResult {
+  review: {
+    id: number;
+    exchange_id: number;
+    reviewer_id: number;
+    reviewee_id: number;
+    rating: number;
+    good_text: string;
+    bad_text: string | null;
+    created_at: string;
+  };
+  analysis: ReviewAnalysis | null;
+  analysis_failed: boolean;
+}
+
+export interface PublicReview {
+  id: number;
+  rating: number;
+  good_text: string;
+  bad_text: string | null;
+  reviewer_nickname: string;
+  listing_title: string | null;
+  contribution_score: number | null;
+  bonus: number;
+  created_at: string;
 }
 
 export interface SignupInput {

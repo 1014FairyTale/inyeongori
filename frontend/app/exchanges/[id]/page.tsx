@@ -10,10 +10,11 @@ import { RequireLogin } from "@/components/RequireLogin";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TermsForm } from "@/components/TermsForm";
 import { TokenAmount } from "@/components/TokenAmount";
+import { ReviewSection } from "@/components/ReviewSection";
 import { Button, Card, ErrorBox } from "@/components/ui";
 
 const ACTIONS: Record<
-  Exclude<ExchangeAction, "propose">,
+  Exclude<ExchangeAction, "propose" | "review">,
   { label: string; path: string; variant: "primary" | "ghost"; confirm?: string }
 > = {
   agree: { label: "합의서에 동의하기", path: "agree", variant: "primary" },
@@ -138,12 +139,19 @@ function ExchangeDetail() {
   } else if (ex.status === "cancel_requested") {
     hint = ex.my_role === "provider" ? "요청자가 취소를 요청했어요. 승인하면 토큰이 환불돼요." : "제공자의 취소 승인을 기다리고 있어요.";
   } else if (ex.status === "completed") {
-    hint = ex.my_role === "provider" ? `${ex.price_tokens}토큰을 받았어요. 수고하셨어요!` : "거래가 완료됐어요. (후기는 7단계에서 열려요)";
+    hint =
+      ex.my_role === "provider"
+        ? `${ex.price_tokens}토큰을 받았어요. 수고하셨어요!`
+        : ex.has_review
+          ? "거래가 완료됐어요. 후기를 남겨 주셔서 고마워요!"
+          : "거래가 완료됐어요. 아래에서 후기를 남겨 주세요 ✍️";
   } else {
     hint = ex.status === "rejected" ? "제공자가 요청을 거절했어요." : "거래가 취소됐어요. 보류된 토큰이 있었다면 환불됐어요.";
   }
 
-  const buttons = ex.actions.filter((a): a is Exclude<ExchangeAction, "propose"> => a !== "propose");
+  const buttons = ex.actions.filter(
+    (a): a is Exclude<ExchangeAction, "propose" | "review"> => a !== "propose" && a !== "review",
+  );
 
   return (
     <div className="space-y-5">
@@ -176,6 +184,16 @@ function ExchangeDetail() {
       </Card>
 
       <div className="rounded-xl bg-brand-soft px-4 py-3 text-sm">{hint}</div>
+
+      {ex.status === "completed" && (
+        <ReviewSection
+          exchange={ex}
+          onChanged={() => {
+            void load();
+            void refresh(); // 보너스를 받으면 헤더 잔액이 바뀌어요
+          }}
+        />
+      )}
 
       <Card className="space-y-3">
         <div className="flex items-center justify-between">
