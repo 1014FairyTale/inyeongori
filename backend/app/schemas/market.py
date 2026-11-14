@@ -126,6 +126,7 @@ ExchangeAction = Literal[
     "approve_cancel",
     "decline_cancel",
     "complete",
+    "review",
 ]
 
 
@@ -145,6 +146,7 @@ class ExchangeOut(BaseModel):
     agreement: AgreementOut
     agreement_versions: int
     actions: list[ExchangeAction]
+    has_review: bool = False
     created_at: datetime
     accepted_at: datetime | None
     completed_at: datetime | None

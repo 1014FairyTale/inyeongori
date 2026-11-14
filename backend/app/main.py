@@ -12,7 +12,7 @@ from app.config import get_settings
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS
 from app.db import SessionLocal
 from app.errors import register_error_handlers
-from app.routers import auth, discovery, exchanges, listings, match, plans, wallet
+from app.routers import auth, discovery, exchanges, listings, match, plans, reviews, wallet
 from app.services.embeddings import backfill_all
 from app.services.ledger import ensure_system_accounts
 
@@ -80,6 +80,7 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
     api.include_router(discovery.router)
     api.include_router(plans.router)
     api.include_router(match.router)
+    api.include_router(reviews.router)
     app.include_router(api)
     return app
 

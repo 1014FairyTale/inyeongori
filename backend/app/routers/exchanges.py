@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.deps import DB, CurrentUser
 from app.errors import AppError
-from app.models import Exchange, Listing, User
+from app.models import Exchange, ExchangeStatus, Listing, Review, User
 from app.schemas.market import (
     AgreementOut,
     AgreementTerms,
@@ -22,6 +22,10 @@ from app.services import exchange_flow as flow
 router = APIRouter(prefix="/exchanges", tags=["exchanges"])
 
 
+def _has_review(db: Session, ex: Exchange) -> bool:
+    return ex.status == ExchangeStatus.COMPLETED and db.scalar(select(Review.id).where(Review.exchange_id == ex.id)) is not None
+
+
 def build_out(db: Session, ex: Exchange, user: User) -> ExchangeOut:
     role = flow.role_of(ex, user)
     ag = flow.current_agreement(db, ex.id)
@@ -29,6 +33,10 @@ def build_out(db: Session, ex: Exchange, user: User) -> ExchangeOut:
     requester = db.get(User, ex.requester_id)
     provider = db.get(User, ex.provider_id)
     assert requester is not None and provider is not None
+    has_review = _has_review(db, ex)
+    actions = flow.available_actions(ex, role, ag)
+    if ex.status == ExchangeStatus.COMPLETED and role == "requester" and not has_review:
+        actions.append("review")
     return ExchangeOut(
         id=ex.id,
         status=ex.status,
@@ -52,7 +60,8 @@ def build_out(db: Session, ex: Exchange, user: User) -> ExchangeOut:
             created_at=ag.created_at,
         ),
         agreement_versions=flow.agreement_versions(db, ex.id),
-        actions=flow.available_actions(ex, role, ag),
+        actions=actions,
+        has_review=has_review,
         created_at=ex.created_at,
         accepted_at=ex.accepted_at,
         completed_at=ex.completed_at,
@@ -95,7 +104,9 @@ def list_exchanges(
         listing = db.get(Listing, ex.listing_id) if ex.listing_id else None
         ag = flow.current_agreement(db, ex.id)
         acts = flow.available_actions(ex, my_role, ag)
-        needs = any(a in acts for a in ("agree", "complete", "approve_cancel"))
+        needs = any(a in acts for a in ("agree", "complete", "approve_cancel")) or (
+            my_role == "requester" and ex.status == ExchangeStatus.COMPLETED and not _has_review(db, ex)
+        )
         assert counterpart is not None
         out.append(
             ExchangeSummary(

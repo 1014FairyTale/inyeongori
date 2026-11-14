@@ -30,6 +30,7 @@ from app.models import Exchange, ExchangeStatus, Listing, ListingStatus, User, U
 from app.schemas.market import UserBrief
 from app.schemas.match import MatchCandidate, MatchedListing
 from app.services.embeddings import embed_text, similarity_threshold
+from app.services.reviews import rating_stats
 
 log = logging.getLogger("matching")
 POOL = 50  # 재능·상품 각각에서 먼저 뽑는 개수
@@ -55,7 +56,7 @@ class _Cand:
 
 
 def provider_stats(db: Session, user_ids: list[int]) -> dict[int, ProviderStats]:
-    """완료 횟수와 평점. (평점은 7단계 후기 기능에서 채워져요)"""
+    """완료 횟수와 후기 평점."""
     stats = {uid: ProviderStats() for uid in user_ids}
     if not user_ids:
         return stats
@@ -66,13 +67,8 @@ def provider_stats(db: Session, user_ids: list[int]) -> dict[int, ProviderStats]
     ).all()
     for uid, n in rows:
         stats[uid].completed_count = n
-    try:
-        from app.services.reviews import rating_stats  # 7단계
-
-        for uid, (avg, cnt) in rating_stats(db, user_ids).items():
-            stats[uid].rating_avg, stats[uid].rating_count = avg, cnt
-    except ImportError:
-        pass
+    for uid, (avg, cnt) in rating_stats(db, user_ids).items():
+        stats[uid].rating_avg, stats[uid].rating_count = avg, cnt
     return stats
 
 
