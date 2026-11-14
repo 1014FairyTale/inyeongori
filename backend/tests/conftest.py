@@ -54,7 +54,7 @@ def _clean_db() -> Iterator[None]:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "TRUNCATE review_analyses, reviews, plan_items, plans, talent_candidates, user_talents, discovery_sessions, "
+                "TRUNCATE exchange_messages, review_analyses, reviews, plan_items, plans, talent_candidates, user_talents, discovery_sessions, "
                 "ledger_transfers, agreements, exchanges, listings, token_accounts, users "
                 "RESTART IDENTITY CASCADE"
             )
