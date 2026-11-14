@@ -1,9 +1,17 @@
-"""부탁 쪼개기 (기능 5). 목표 기반 교환 경로(기능 7)는 6단계에서 이 로직을 재사용해요."""
+"""부탁 쪼개기 (기능 5)와 목표 기반 교환 경로 (기능 7).
+
+두 기능은 같은 저장 구조(plans, plan_items)와 가격 제안 로직을 공유해요.
+- breakdown: 큰 목표 → 20~30분 활동
+- path: 목표 → 순서대로 받으면 좋은 도움(교환) + 단계별 '왜 필요한지'
+각 단계는 가장 비슷한 재능 상품과 연결되고, 화면에서 '맞는 사람 찾기'(AI 매칭)로 이어져요.
+"""
+
+from dataclasses import dataclass
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ai.schemas import BreakdownAI
+from ai.schemas import BreakdownAI, PathAI
 from ai.structured import generate
 from app.core.constants import LISTING_CATEGORIES
 from app.errors import AppError
@@ -18,9 +26,18 @@ def _item_text(title: str, description: str | None) -> str:
     return f"{title}: {description or ''}".strip()
 
 
-def create_breakdown(db: Session, user: User, goal: str) -> Plan:
-    stats = market_stats(db)
-    prompt = "\n".join(
+@dataclass
+class _Step:
+    title: str
+    description: str
+    minutes: int
+    category: str
+    estimated_tokens: int
+    why: str | None = None
+
+
+def _prompt(goal: str, stats: dict[str, object]) -> str:
+    return "\n".join(
         [
             "## 목표",
             goal,
@@ -32,18 +49,29 @@ def create_breakdown(db: Session, user: User, goal: str) -> Plan:
             market_stats_text(stats),
         ]
     )
-    ai = generate("breakdown", prompt, BreakdownAI)
 
-    plan = Plan(user_id=user.id, goal=goal, kind=PlanKind.BREAKDOWN, summary=ai.summary)
+
+def create_plan(db: Session, user: User, goal: str, kind: PlanKind) -> Plan:
+    stats = market_stats(db)
+    if kind == PlanKind.PATH:
+        path = generate("path", _prompt(goal, stats), PathAI)
+        summary = path.summary
+        steps = [_Step(s.title, s.description, s.minutes, s.category, s.estimated_tokens, s.why) for s in path.steps]
+    else:
+        bd = generate("breakdown", _prompt(goal, stats), BreakdownAI)
+        summary = bd.summary
+        steps = [_Step(s.title, s.description, s.minutes, s.category, s.estimated_tokens) for s in bd.items]
+
+    plan = Plan(user_id=user.id, goal=goal, kind=kind, summary=summary)
     db.add(plan)
     db.flush()
-    for i, it in enumerate(ai.items):
-        category = it.category if it.category in LISTING_CATEGORIES else FALLBACK_CATEGORY
+    for i, s in enumerate(steps):
+        category = s.category if s.category in LISTING_CATEGORIES else FALLBACK_CATEGORY
         price = suggest_price(
             db,
-            _item_text(it.title, it.description),
+            _item_text(s.title, s.description),
             category=category,
-            ai_estimate=it.estimated_tokens,
+            ai_estimate=s.estimated_tokens,
             exclude_user_id=user.id,
             stats=stats,
         )
@@ -51,9 +79,10 @@ def create_breakdown(db: Session, user: User, goal: str) -> Plan:
             PlanItem(
                 plan_id=plan.id,
                 position=i,
-                title=it.title[:60],
-                description=it.description,
-                minutes=it.minutes,
+                title=s.title[:60],
+                description=s.description,
+                why=s.why,
+                minutes=s.minutes,
                 category=category,
                 suggested_tokens=price.tokens,
                 price_basis=price.basis,
@@ -64,6 +93,10 @@ def create_breakdown(db: Session, user: User, goal: str) -> Plan:
         )
     db.flush()
     return plan
+
+
+def create_breakdown(db: Session, user: User, goal: str) -> Plan:
+    return create_plan(db, user, goal, PlanKind.BREAKDOWN)
 
 
 def get_plan(db: Session, user: User, plan_id: int) -> Plan:
@@ -157,6 +190,7 @@ def plan_out(db: Session, plan: Plan) -> PlanOut:
             position=it.position,
             title=it.title,
             description=it.description,
+            why=it.why,
             minutes=it.minutes,
             category=it.category,
             suggested_tokens=it.suggested_tokens,

@@ -41,6 +41,7 @@ class PlanItem(TimestampMixin, Base):
     position: Mapped[int] = mapped_column(Integer)
     title: Mapped[str] = mapped_column(String(60))
     description: Mapped[str | None] = mapped_column(Text)
+    why: Mapped[str | None] = mapped_column(Text)  # 목표 경로: 이 단계가 왜 필요한지
     minutes: Mapped[int] = mapped_column(Integer)
     category: Mapped[str] = mapped_column(String(30))
     suggested_tokens: Mapped[int] = mapped_column(Integer)

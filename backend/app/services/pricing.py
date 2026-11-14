@@ -13,7 +13,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ai.factory import embedding_model_name
-from app.core.constants import PRICE_FALLBACK_TOKENS, PRICE_SUGGEST_MIN_SIMILAR, PRICE_SUGGEST_TOP_K
+from app.core.constants import (
+    MATCH_RELATIVE_CUTOFF,
+    PRICE_FALLBACK_TOKENS,
+    PRICE_SUGGEST_MIN_SIMILAR,
+    PRICE_SUGGEST_TOP_K,
+)
 from app.models import Listing, ListingStatus, PriceBasis
 from app.services.embeddings import embed_text, similarity_threshold
 
@@ -52,7 +57,12 @@ def find_similar_listings(
     if exclude_user_id is not None:
         stmt = stmt.where(Listing.provider_id != exclude_user_id)
     threshold = similarity_threshold()
-    return [SimilarListing(listing, 1 - float(d)) for listing, d in db.execute(stmt).all() if 1 - float(d) >= threshold]
+    found = [SimilarListing(listing, 1 - float(d)) for listing, d in db.execute(stmt).all() if 1 - float(d) >= threshold]
+    if not found:
+        return []
+    # 1등과 차이가 큰 상품은 '비슷한 재능'으로 세지 않아요 (느슨하게 비슷한 상품이 시세에 섞이지 않게)
+    top = found[0].similarity
+    return [s for s in found if s.similarity >= top - MATCH_RELATIVE_CUTOFF]
 
 
 def market_stats(db: Session) -> dict[str, object]:

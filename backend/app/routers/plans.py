@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status
 
 from app.deps import DB, CurrentUser
+from app.models import PlanKind
 from app.schemas.plan import AgreementDraftIn, AgreementDraftOut, PlanCreate, PlanItemsUpdate, PlanOut, PlanSummary
 from app.services import agreement_helper, planning
 
@@ -15,7 +16,7 @@ def draft_agreement(req: AgreementDraftIn, _: CurrentUser, db: DB) -> AgreementD
 
 @router.post("/plans", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
 def create_plan(req: PlanCreate, user: CurrentUser, db: DB) -> PlanOut:
-    plan = planning.create_breakdown(db, user, req.goal)
+    plan = planning.create_plan(db, user, req.goal, PlanKind(req.kind))
     db.commit()
     return planning.plan_out(db, plan)
 

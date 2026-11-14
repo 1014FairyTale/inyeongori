@@ -36,7 +36,7 @@ class AgreementDraftOut(BaseModel):
 
 class PlanCreate(BaseModel):
     goal: str = Field(min_length=2, max_length=300)
-    kind: Literal["breakdown"] = "breakdown"  # 'path'는 6단계
+    kind: Literal["breakdown", "path"] = "breakdown"
 
     @field_validator("goal")
     @classmethod
@@ -59,6 +59,7 @@ class PlanItemOut(BaseModel):
     position: int
     title: str
     description: str | None
+    why: str | None
     minutes: int
     category: str
     suggested_tokens: int

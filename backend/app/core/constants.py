@@ -42,6 +42,11 @@ MATCH_WEIGHT_RATING = 0.2
 MATCH_WEIGHT_ACTIVITY = 0.1
 MATCH_RATING_PRIOR = 3.5
 MATCH_RATING_PRIOR_WEIGHT = 3
+# 매칭 후보 최소 유사도 = 가격 제안 기준(SIMILARITY_THRESHOLD) - 이 값.
+#  bge-m3 실측(2026-11-14): 관련 0.57~0.67, 무관 0.46~0.51 → 기준 0.52
+MATCH_MIN_SIMILARITY_MARGIN = 0.03
+# 1등보다 이만큼 이상 낮은 후보는 빼요 (관련 없는 사람이 섞이지 않게)
+MATCH_RELATIVE_CUTOFF = 0.12
 
 # ---- 부탁 쪼개기 적정 토큰 (5단계에서 사용) ----
 # 비슷한 상품 가격의 중앙값을 쓰고, 비슷한 상품이 이 개수보다 적으면 AI 추정으로 넘어가요.
