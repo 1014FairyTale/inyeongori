@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { api, ApiError, type Listing, type Page } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 import { Button, ErrorBox } from "@/components/ui";
 
 export default function MarketPage() {
+  return (
+    <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+      <Market />
+    </Suspense>
+  );
+}
+
+function Market() {
+  const initialQ = useSearchParams().get("q") ?? ""; // 부탁 쪼개기에서 '마켓에서 찾기'로 넘어올 때
   const [categories, setCategories] = useState<string[]>([]);
   const [category, setCategory] = useState<string | null>(null);
-  const [q, setQ] = useState("");
-  const [query, setQuery] = useState("");
+  const [q, setQ] = useState(initialQ);
+  const [query, setQuery] = useState(initialQ);
   const [data, setData] = useState<Page<Listing> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -45,6 +55,9 @@ export default function MarketPage() {
           + 재능 등록
         </Link>
       </div>
+      <Link href="/plans" className="block rounded-xl bg-ai-soft px-4 py-3 text-sm text-ai">
+        ✂️ 뭘 부탁해야 할지 막막하다면? <b>큰 목표를 작은 부탁으로 쪼개 보세요 →</b>
+      </Link>
 
       <form
         onSubmit={(e) => {

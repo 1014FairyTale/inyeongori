@@ -255,6 +255,50 @@ export interface DecisionResult {
   talent: Talent | null;
 }
 
+export type TermField = "scope" | "quantity" | "revisions" | "duration_minutes" | "notes";
+
+export interface AgreementDraft {
+  summary: string;
+  terms: AgreementTerms;
+  missing: { field: TermField; question: string; options: string[] }[];
+}
+
+export type PriceBasis = "market" | "ai" | "user";
+
+export interface PlanItem {
+  id: number;
+  position: number;
+  title: string;
+  description: string | null;
+  minutes: number;
+  category: string;
+  suggested_tokens: number;
+  price_basis: PriceBasis;
+  similar_count: number;
+  linked_listing: { id: number; title: string; price_tokens: number; provider_nickname: string } | null;
+  ai_generated: boolean;
+  edited: boolean;
+}
+
+export interface Plan {
+  id: number;
+  goal: string;
+  kind: "breakdown" | "path";
+  summary: string | null;
+  items: PlanItem[];
+  total_tokens: number;
+  created_at: string;
+}
+
+export interface PlanSummary {
+  id: number;
+  goal: string;
+  kind: "breakdown" | "path";
+  item_count: number;
+  total_tokens: number;
+  created_at: string;
+}
+
 export interface SignupInput {
   email: string;
   password: string;

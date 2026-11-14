@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { api, ApiError, type AgreementTerms, type Exchange, type Listing } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { AgreementHelper } from "@/components/AgreementHelper";
+import { AiBadge } from "@/components/AiBadge";
 import { TermsForm } from "@/components/TermsForm";
 import { TokenAmount } from "@/components/TokenAmount";
 import { Button, Card, ErrorBox } from "@/components/ui";
@@ -16,6 +18,8 @@ function ListingDetail() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [requesting, setRequesting] = useState(false);
+  const [aiTerms, setAiTerms] = useState<AgreementTerms | null>(null);
+  const [formKey, setFormKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +39,10 @@ function ListingDetail() {
     setSubmitting(true);
     setError(null);
     try {
-      const ex = await api<Exchange>("/exchanges", { method: "POST", json: { listing_id: listing!.id, terms } });
+      const ex = await api<Exchange>("/exchanges", {
+        method: "POST",
+        json: { listing_id: listing!.id, terms, ai_generated: aiTerms !== null },
+      });
       router.push(`/exchanges/${ex.id}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "요청하지 못했어요. 다시 시도해 주세요");
@@ -105,7 +112,25 @@ function ListingDetail() {
             보내면 내가 합의서에 먼저 동의한 상태가 돼요. 제공자가 동의하면 <b>{listing.price_tokens}토큰이 보류</b>되고,
             양쪽이 완료를 확인하면 제공자에게 지급돼요.
           </p>
-          <TermsForm submitLabel="요청 보내기" submitting={submitting} onSubmit={sendRequest} onCancel={() => setRequesting(false)} />
+          <AgreementHelper
+            listingId={listing.id}
+            onApply={(terms) => {
+              setAiTerms(terms);
+              setFormKey((k) => k + 1); // 폼을 AI 결과로 다시 채워요
+            }}
+          />
+          <div className="flex items-center gap-2 pt-2">
+            <h3 className="font-semibold">요청서</h3>
+            {aiTerms && <AiBadge />}
+          </div>
+          <TermsForm
+            key={formKey}
+            initial={aiTerms ?? undefined}
+            submitLabel="요청 보내기"
+            submitting={submitting}
+            onSubmit={sendRequest}
+            onCancel={() => setRequesting(false)}
+          />
         </Card>
       ) : (
         <div className="space-y-2">

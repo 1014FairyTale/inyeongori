@@ -44,6 +44,18 @@ export default function Home() {
         )}
       </section>
 
+      <Link
+        href={me ? "/plans" : "/signup?next=/plans"}
+        className="flex items-center justify-between rounded-2xl border border-ai/30 bg-ai-soft px-5 py-4 text-ai"
+      >
+        <span>
+          <b>✂️ 큰 목표, 작은 부탁으로 쪼개기</b>
+          <br />
+          <span className="text-sm">&ldquo;앱 개발 배우고 싶어요&rdquo; → 20~30분 활동으로</span>
+        </span>
+        <span aria-hidden>→</span>
+      </Link>
+
       <section className="space-y-3">
         {STEPS.map((s, i) => (
           <Card key={s.title} className="flex gap-4">
