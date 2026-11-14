@@ -5,6 +5,22 @@
 SIGNUP_BONUS_TOKENS = 100
 BONUS_POOL_INITIAL_TOKENS = 100_000
 
+# ---- 재능 마켓 ----
+LISTING_MIN_PRICE = 1
+LISTING_MAX_PRICE = 500
+LISTING_CATEGORIES = [
+    "학업·과제",
+    "발표·PPT",
+    "디자인",
+    "개발·IT",
+    "엑셀·문서",
+    "어학",
+    "음악·예술",
+    "운동·게임",
+    "진로·취업",
+    "생활·기타",
+]
+
 # ---- 후기 보너스 (D5-A, 7단계에서 사용) ----
 BONUS_MIN_CONTRIBUTION_SCORE = 70
 BONUS_MIN_RATING = 4

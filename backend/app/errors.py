@@ -32,6 +32,7 @@ def _body(code: str, message: str, details: dict[str, Any] | None = None) -> dic
 
 
 _HTTP_CODES = {
+    400: ("BAD_REQUEST", "요청 형식이 올바르지 않아요"),
     401: ("UNAUTHORIZED", "로그인이 필요해요"),
     403: ("FORBIDDEN", "권한이 없어요"),
     404: ("NOT_FOUND", "찾을 수 없어요"),

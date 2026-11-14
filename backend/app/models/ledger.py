@@ -73,8 +73,7 @@ class LedgerTransfer(TimestampMixin, Base):
     from_account_id: Mapped[int] = mapped_column(ForeignKey("token_accounts.id"), index=True)
     to_account_id: Mapped[int] = mapped_column(ForeignKey("token_accounts.id"), index=True)
     amount: Mapped[int] = mapped_column(BigInteger)
-    # 3단계에서 exchanges 테이블이 생기면 FK를 추가해요
-    exchange_id: Mapped[int | None] = mapped_column(Integer, index=True)
+    exchange_id: Mapped[int | None] = mapped_column(ForeignKey("exchanges.id"), index=True)
     # 같은 이동이 두 번 기록되지 않게 (예: "signup:12", "payout:34")
     idempotency_key: Mapped[str] = mapped_column(String(120), unique=True)
     memo: Mapped[str | None] = mapped_column(String(200))

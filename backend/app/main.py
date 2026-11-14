@@ -8,7 +8,7 @@ from app.config import get_settings
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS
 from app.db import SessionLocal
 from app.errors import register_error_handlers
-from app.routers import auth
+from app.routers import auth, exchanges, listings, wallet
 from app.services.ledger import ensure_system_accounts
 
 
@@ -47,6 +47,9 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
         return {"status": "ok", "ai_mock": settings.ai_mock}
 
     api.include_router(auth.router)
+    api.include_router(listings.router)
+    api.include_router(exchanges.router)
+    api.include_router(wallet.router)
     app.include_router(api)
     return app
 
