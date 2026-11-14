@@ -16,7 +16,9 @@ export function Header() {
         {loading ? null : me ? (
           <div className="flex items-center gap-3 text-sm">
             <TokenAmount amount={me.wallet.available} />
-            <span className="hidden text-muted sm:inline">{me.user.nickname}님</span>
+            <Link href="/me" className="text-muted">
+              {me.user.nickname}님
+            </Link>
             <button onClick={logout} className="text-muted underline-offset-2 hover:underline">
               로그아웃
             </button>

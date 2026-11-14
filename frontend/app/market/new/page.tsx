@@ -1,15 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Listing } from "@/lib/api";
 import { RequireLogin } from "@/components/RequireLogin";
 import { Button, Card, ErrorBox, Field, TextArea } from "@/components/ui";
 
 function NewListingForm() {
   const router = useRouter();
+  const params = useSearchParams(); // 내 재능에서 넘어오면 제목·카테고리·설명을 미리 채워요
   const [categories, setCategories] = useState<string[]>([]);
-  const [form, setForm] = useState({ title: "", description: "", category: "", price_tokens: "", est_minutes: "" });
+  const [form, setForm] = useState({
+    title: params.get("title") ?? "",
+    description: params.get("description") ?? "",
+    category: params.get("category") ?? "",
+    price_tokens: "",
+    est_minutes: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -111,7 +118,9 @@ function NewListingForm() {
 export default function NewListingPage() {
   return (
     <RequireLogin>
-      <NewListingForm />
+      <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+        <NewListingForm />
+      </Suspense>
     </RequireLogin>
   );
 }

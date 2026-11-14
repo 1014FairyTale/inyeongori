@@ -209,6 +209,52 @@ export interface LedgerItem {
   created_at: string;
 }
 
+export interface DiscoveryAnswers {
+  recent_roles?: string | null;
+  friends_ask?: string | null;
+  confident_tools?: string | null;
+}
+
+export type CandidateStatus = "pending" | "accepted" | "edited" | "rejected";
+
+export interface TalentCandidate {
+  id: number;
+  name: string;
+  category: string;
+  evidence: string;
+  source_quote: string | null;
+  confirm_question: string;
+  description: string;
+  status: CandidateStatus;
+  talent_id: number | null;
+  final_name: string | null;
+  final_description: string | null;
+}
+
+export interface DiscoverySession {
+  id: number;
+  intro_text: string;
+  answers: DiscoveryAnswers;
+  encouragement: string | null;
+  ai_provider: string;
+  candidates: TalentCandidate[];
+  created_at: string;
+}
+
+export interface Talent {
+  id: number;
+  name: string;
+  category: string;
+  description: string | null;
+  source: "ai_confirmed" | "manual";
+  created_at: string;
+}
+
+export interface DecisionResult {
+  candidate: TalentCandidate;
+  talent: Talent | null;
+}
+
 export interface SignupInput {
   email: string;
   password: string;
