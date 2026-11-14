@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -59,10 +59,24 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - `agreements`: exchange_id, version, proposed_by, terms(JSONB: request_text/scope/quantity/revisions/duration_minutes/notes), ai_generated, requester_agreed_at, provider_agreed_at
   - 조건 수정 = 새 version, 제안자만 동의한 상태로 시작. 수락 후에는 수정 불가.
 
+- `discovery_sessions`(자기소개·문답·격려 문구), `talent_candidates`(AI 후보: name/category/evidence/source_quote/confirm_question/description, status pending/accepted/edited/rejected, talent_id), `user_talents`(확정 재능 + `embedding vector(1024)` + embedding_model)
+  - 확정(맞아요/수정)한 것만 user_talents에 저장. 후보의 AI 원래 제안은 남기고, 수정한 값은 talent에 저장 (`final_name`으로 응답).
+  - 임베딩 실패해도 재능 저장은 진행 (embedding=NULL) → `discovery.backfill_embeddings()`로 채움. embedding_model이 현재 모델과 다르면 다시 임베딩 대상.
+
+## AI 모듈 규칙
+- 호출 흐름: `ai/structured.generate(feature, user_text, PydanticSchema)` → provider.generate_json → `model_validate_json` → 실패 시 1회 재시도 → `AIError` → API는 502 `AI_FAILED`.
+- 새 AI 기능 추가 시: `ai/schemas.py`에 출력 스키마, `ai/prompts/<feature>.md`, `ai/mocks/<feature>.json` 세 개를 같이 만든다.
+- Gemini: `google-genai` SDK, `response_json_schema`에 Pydantic `model_json_schema()` 전달, 429는 "무료 한도 초과" 메시지.
+- 임베딩: `sentence-transformers` + `BAAI/bge-m3` (CPU torch). 모델은 `hf_cache` 볼륨에 캐시. mock 모드는 n-gram 해싱 임베딩.
+- 테스트에서 LLM 바꾸기: `monkeypatch.setattr(ai.structured, "get_llm", lambda: FakeLLM([...]))`.
+
 ## 프론트 메모
 - Next 16 + Cache Components: `useParams`/`usePathname`/`useSearchParams`를 쓰는 클라이언트 컴포넌트는 `<Suspense>`로 감싸야 빌드된다.
 - 로컬에서 `npm run build`를 하면 `frontend/.next`가 생겨 컨테이너 개발 서버와 섞인다. 빌드 확인 후 `rm -rf frontend/.next` 하고 `docker compose restart frontend`.
 - 로그인 복원 실패 시 401일 때만 토큰을 지운다 (서버 재시작 중 로그아웃 방지).
+- ⚠️ Windows 바인드 마운트에서는 frontend 컨테이너의 핫 리로드가 안 된다. 프론트 코드를 바꾼 뒤에는 `docker compose restart frontend` (또는 컨테이너를 멈추고 로컬 `npm run dev`).
+- 브라우저 패널 스크린샷이 오른쪽이 잘려 보일 때가 있음 → 레이아웃 판단은 JS로 `scrollWidth`/요소 rect 확인.
+- AI 결과 UI 공통 컴포넌트: `AiBadge`(✨ AI 제안), `AiLoading`(문구 순환 로딩), 실패 시 ErrorBox + "다시 시도".
 
 ## 결정 사항
 README.md의 "결정 사항" 섹션이 기준. 바뀌면 둘 다 갱신.
