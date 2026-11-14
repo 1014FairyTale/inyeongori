@@ -8,7 +8,11 @@ from app.config import get_settings
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS
 from app.db import SessionLocal
 from app.errors import register_error_handlers
-from app.routers import auth, exchanges, listings, wallet
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+from ai.providers.base import AIError
+from app.routers import auth, discovery, exchanges, listings, wallet
 from app.services.ledger import ensure_system_accounts
 
 
@@ -40,6 +44,13 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
     )
     register_error_handlers(app)
 
+    @app.exception_handler(AIError)
+    async def _ai_error(_: Request, exc: AIError) -> JSONResponse:
+        return JSONResponse(
+            {"error": {"code": "AI_FAILED", "message": str(exc), "details": {"feature": exc.feature}}},
+            status_code=502,
+        )
+
     api = APIRouter(prefix="/api/v1")
 
     @api.get("/health", tags=["meta"])
@@ -50,6 +61,7 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
     api.include_router(listings.router)
     api.include_router(exchanges.router)
     api.include_router(wallet.router)
+    api.include_router(discovery.router)
     app.include_router(api)
     return app
 
