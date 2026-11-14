@@ -147,6 +147,8 @@ class ExchangeOut(BaseModel):
     agreement_versions: int
     actions: list[ExchangeAction]
     has_review: bool = False
+    chat_state: Literal["open", "readonly", "closed"] = "closed"
+    unread_count: int = 0
     created_at: datetime
     accepted_at: datetime | None
     completed_at: datetime | None
@@ -161,6 +163,7 @@ class ExchangeSummary(BaseModel):
     counterpart: UserBrief
     my_role: Literal["requester", "provider"]
     needs_my_action: bool
+    unread_count: int = 0
     created_at: datetime
 
 

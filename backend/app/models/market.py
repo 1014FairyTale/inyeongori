@@ -90,6 +90,9 @@ class Exchange(TimestampMixin, Base):
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # 취소·거절 시각
+    # 채팅 읽음 위치 (각자 마지막으로 읽은 메시지 id)
+    requester_last_read_id: Mapped[int | None] = mapped_column(Integer)
+    provider_last_read_id: Mapped[int | None] = mapped_column(Integer)
 
 
 class Agreement(TimestampMixin, Base):

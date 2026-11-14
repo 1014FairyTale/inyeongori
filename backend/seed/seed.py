@@ -33,7 +33,7 @@ from seed.data import COMPLETED, DEMO_REQUESTER, IN_PROGRESS, STUDENTS
 
 DEFAULT_PASSWORD = "demo1234!"
 TABLES = (
-    "review_analyses, reviews, plan_items, plans, talent_candidates, user_talents, discovery_sessions, "
+    "exchange_messages, review_analyses, reviews, plan_items, plans, talent_candidates, user_talents, discovery_sessions, "
     "ledger_transfers, agreements, exchanges, listings, token_accounts, users"
 )
 

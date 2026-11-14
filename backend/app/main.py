@@ -12,7 +12,7 @@ from app.config import get_settings
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS
 from app.db import SessionLocal
 from app.errors import register_error_handlers
-from app.routers import auth, discovery, exchanges, listings, match, plans, reviews, wallet
+from app.routers import auth, chat, discovery, exchanges, listings, match, plans, reviews, wallet
 from app.services.embeddings import backfill_all
 from app.services.ledger import ensure_system_accounts
 
@@ -83,6 +83,7 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
 
     api.include_router(auth.router)
     api.include_router(listings.router)
+    api.include_router(chat.router)  # /exchanges/unread 가 /exchanges/{id} 보다 먼저 매칭되도록 앞에 둬요
     api.include_router(exchanges.router)
     api.include_router(wallet.router)
     api.include_router(discovery.router)

@@ -17,6 +17,7 @@ from app.schemas.market import (
     ProposeTerms,
     UserBrief,
 )
+from app.services import chat
 from app.services import exchange_flow as flow
 
 router = APIRouter(prefix="/exchanges", tags=["exchanges"])
@@ -62,6 +63,8 @@ def build_out(db: Session, ex: Exchange, user: User) -> ExchangeOut:
         agreement_versions=flow.agreement_versions(db, ex.id),
         actions=actions,
         has_review=has_review,
+        chat_state=chat.chat_state(ex),
+        unread_count=chat.unread_counts(db, user, [ex])[ex.id],
         created_at=ex.created_at,
         accepted_at=ex.accepted_at,
         completed_at=ex.completed_at,
@@ -96,6 +99,7 @@ def list_exchanges(
     else:
         stmt = stmt.where(or_(Exchange.requester_id == user.id, Exchange.provider_id == user.id))
     exchanges = db.scalars(stmt.order_by(Exchange.created_at.desc(), Exchange.id.desc()).limit(100)).all()
+    unread = chat.unread_counts(db, user, list(exchanges))
 
     out: list[ExchangeSummary] = []
     for ex in exchanges:
@@ -117,6 +121,7 @@ def list_exchanges(
                 counterpart=UserBrief.model_validate(counterpart),
                 my_role=my_role,
                 needs_my_action=needs,
+                unread_count=unread[ex.id],
                 created_at=ex.created_at,
             )
         )

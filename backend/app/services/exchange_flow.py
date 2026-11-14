@@ -15,7 +15,18 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.errors import AppError
-from app.models import AccountKind, Agreement, EntryType, Exchange, ExchangeStatus, Listing, ListingStatus, User
+from app.models import (
+    AccountKind,
+    Agreement,
+    EntryType,
+    Exchange,
+    ExchangeMessage,
+    ExchangeStatus,
+    Listing,
+    ListingStatus,
+    MessageKind,
+    User,
+)
 from app.schemas.market import AgreementTerms, ExchangeAction
 from app.services import ledger
 
@@ -75,6 +86,11 @@ def _new_agreement(
     db.add(ag)
     db.flush()
     return ag
+
+
+def post_system(db: Session, ex: Exchange, body: str) -> None:
+    """거래 채팅에 상태 변경 안내를 남겨요 (채팅이 열린 뒤에만 보여요)."""
+    db.add(ExchangeMessage(exchange_id=ex.id, sender_id=None, kind=MessageKind.SYSTEM, body=body))
 
 
 def _accounts(db: Session, user_id: int) -> tuple[int, int]:
@@ -165,6 +181,12 @@ def agree(db: Session, user: User, exchange_id: int) -> Exchange:
             raise
         ex.status = ExchangeStatus.ACCEPTED
         ex.accepted_at = now
+        post_system(
+            db,
+            ex,
+            f"거래가 시작됐어요! {ex.price_tokens}토큰이 안전하게 보류됐어요. "
+            "합의서를 바탕으로 일정, 만날 장소나 온라인 도구 같은 진행 방식을 여기서 이야기해 보세요.",
+        )
     return ex
 
 
@@ -209,14 +231,22 @@ def cancel(db: Session, user: User, exchange_id: int) -> Exchange:
 
     if role == "provider" and ex.status in (ExchangeStatus.ACCEPTED, ExchangeStatus.CANCEL_REQUESTED):
         _refund(db, ex)
+        approved = ex.status == ExchangeStatus.CANCEL_REQUESTED
         ex.status = ExchangeStatus.CANCELLED
         ex.cancelled_by = ex.cancel_requested_by or user.id
         ex.closed_at = _now()
+        post_system(
+            db,
+            ex,
+            ("제공자가 취소 요청을 승인했어요. " if approved else "제공자가 거래를 취소했어요. ")
+            + f"보류된 {ex.price_tokens}토큰은 요청자에게 전액 환불됐어요.",
+        )
         return ex
 
     if role == "requester" and ex.status == ExchangeStatus.ACCEPTED:
         ex.status = ExchangeStatus.CANCEL_REQUESTED
         ex.cancel_requested_by = user.id
+        post_system(db, ex, "요청자가 거래 취소를 요청했어요. 제공자가 승인하면 토큰이 환불돼요.")
         return ex
 
     if role == "requester" and ex.status == ExchangeStatus.CANCEL_REQUESTED:
@@ -232,6 +262,7 @@ def decline_cancel(db: Session, user: User, exchange_id: int) -> Exchange:
         raise _invalid_state(ex)
     ex.status = ExchangeStatus.ACCEPTED
     ex.cancel_requested_by = None
+    post_system(db, ex, "제공자가 취소 요청을 거절해서 거래가 계속 진행돼요.")
     return ex
 
 
@@ -243,10 +274,13 @@ def complete(db: Session, user: User, exchange_id: int) -> Exchange:
         raise _invalid_state(ex)
 
     now = _now()
+    newly = False
     if role == "requester" and ex.requester_done_at is None:
         ex.requester_done_at = now
+        newly = True
     if role == "provider" and ex.provider_done_at is None:
         ex.provider_done_at = now
+        newly = True
 
     if ex.requester_done_at and ex.provider_done_at:
         _, escrow = _accounts(db, ex.requester_id)
@@ -263,6 +297,10 @@ def complete(db: Session, user: User, exchange_id: int) -> Exchange:
         )
         ex.status = ExchangeStatus.COMPLETED
         ex.completed_at = now
+        post_system(db, ex, f"양쪽이 완료를 확인해서 {ex.price_tokens}토큰이 지급됐어요. 수고하셨어요! 요청자는 후기를 남겨 주세요.")
+    elif newly:
+        who = "요청자" if role == "requester" else "제공자"
+        post_system(db, ex, f"{who}가 완료를 확인했어요. 상대방도 확인하면 토큰이 지급돼요.")
     return ex
 
 
