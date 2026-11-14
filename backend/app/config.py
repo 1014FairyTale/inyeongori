@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     ai_mock: bool = True
     llm_provider: str = "gemini"
     gemini_api_key: str = ""
-    llm_model: str = "gemini-flash-latest"
+    llm_model: str = "gemini-3.5-flash-lite"
     embedding_provider: str = "local"
     embedding_model: str = "BAAI/bge-m3"
     embedding_dim: int = 1024

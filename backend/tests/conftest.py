@@ -15,7 +15,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
-os.environ.setdefault("AI_MOCK", "true")
+# 테스트는 .env 설정과 상관없이 항상 mock AI로 돌려요 (실제 API 호출·무료 한도 소모 방지)
+os.environ["AI_MOCK"] = "true"
 
 from app.config import get_settings  # noqa: E402
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS  # noqa: E402
