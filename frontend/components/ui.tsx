@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 export function Button({
   children,
@@ -30,6 +30,30 @@ export function Field({
       <span className="text-sm font-medium">{label}</span>
       <input
         className={`w-full rounded-xl border bg-card px-3.5 py-3 text-base outline-none focus:border-brand ${
+          error ? "border-danger" : "border-border"
+        }`}
+        {...rest}
+      />
+      {error ? (
+        <span className="text-sm text-danger">{error}</span>
+      ) : hint ? (
+        <span className="text-sm text-muted">{hint}</span>
+      ) : null}
+    </label>
+  );
+}
+
+export function TextArea({
+  label,
+  hint,
+  error,
+  ...rest
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-sm font-medium">{label}</span>
+      <textarea
+        className={`min-h-24 w-full rounded-xl border bg-card px-3.5 py-3 text-base outline-none focus:border-brand ${
           error ? "border-danger" : "border-border"
         }`}
         {...rest}

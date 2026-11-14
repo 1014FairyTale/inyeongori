@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, getToken, setToken, type Me, type SignupInput, type TokenResponse } from "@/lib/api";
+import { api, ApiError, getToken, setToken, type Me, type SignupInput, type TokenResponse } from "@/lib/api";
 
 interface AuthState {
   me: Me | null;
@@ -25,9 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       setMe(await api<Me>("/auth/me"));
-    } catch {
-      setToken(null);
-      setMe(null);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        setToken(null);
+        setMe(null);
+      }
     }
   }, []);
 
@@ -39,8 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (getToken()) {
         try {
           restored = await api<Me>("/auth/me");
-        } catch {
-          setToken(null);
+        } catch (e) {
+          // 인증이 실제로 만료된 경우에만 로그아웃해요 (서버가 잠깐 안 될 때는 유지)
+          if (e instanceof ApiError && e.status === 401) setToken(null);
         }
       }
       if (!cancelled) {

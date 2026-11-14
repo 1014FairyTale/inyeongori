@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { Header } from "@/components/Header";
+import { BottomNav } from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "인연고리 — AI가 찾아 주는 나의 숨은 재능",
@@ -19,7 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-full flex-col">
         <AuthProvider>
           <Header />
-          <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16 pt-6">{children}</main>
+          <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-24 pt-6">{children}</main>
+          <Suspense fallback={null}>
+            <BottomNav />
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

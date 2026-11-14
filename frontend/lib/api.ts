@@ -95,6 +95,120 @@ export interface TokenResponse {
   me: Me;
 }
 
+export interface UserBrief {
+  id: number;
+  nickname: string;
+  school: string | null;
+  major: string | null;
+}
+
+export type ListingStatus = "active" | "paused";
+
+export interface Listing {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  price_tokens: number;
+  est_minutes: number | null;
+  status: ListingStatus;
+  provider: UserBrief;
+  created_at: string;
+  completed_count: number;
+}
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export interface ListingInput {
+  title: string;
+  description: string;
+  category: string;
+  price_tokens: number;
+  est_minutes?: number | null;
+}
+
+export interface AgreementTerms {
+  request_text: string;
+  scope?: string | null;
+  quantity?: string | null;
+  revisions?: number | null;
+  duration_minutes?: number | null;
+  notes?: string | null;
+}
+
+export interface Agreement {
+  version: number;
+  terms: AgreementTerms;
+  ai_generated: boolean;
+  proposed_by: number;
+  requester_agreed: boolean;
+  provider_agreed: boolean;
+  created_at: string;
+}
+
+export type ExchangeStatus = "requested" | "accepted" | "cancel_requested" | "completed" | "cancelled" | "rejected";
+
+export type ExchangeAction =
+  | "agree"
+  | "propose"
+  | "reject"
+  | "withdraw"
+  | "cancel"
+  | "request_cancel"
+  | "approve_cancel"
+  | "decline_cancel"
+  | "complete";
+
+export interface Exchange {
+  id: number;
+  status: ExchangeStatus;
+  price_tokens: number;
+  listing_id: number | null;
+  listing_title: string | null;
+  category: string | null;
+  requester: UserBrief;
+  provider: UserBrief;
+  my_role: "requester" | "provider";
+  requester_done: boolean;
+  provider_done: boolean;
+  cancel_requested_by: number | null;
+  agreement: Agreement;
+  agreement_versions: number;
+  actions: ExchangeAction[];
+  created_at: string;
+  accepted_at: string | null;
+  completed_at: string | null;
+  closed_at: string | null;
+}
+
+export interface ExchangeSummary {
+  id: number;
+  status: ExchangeStatus;
+  price_tokens: number;
+  listing_title: string | null;
+  counterpart: UserBrief;
+  my_role: "requester" | "provider";
+  needs_my_action: boolean;
+  created_at: string;
+}
+
+export interface LedgerItem {
+  id: string;
+  entry_type: string;
+  label: string;
+  available_delta: number;
+  escrow_delta: number;
+  exchange_id: number | null;
+  listing_title: string | null;
+  memo: string | null;
+  created_at: string;
+}
+
 export interface SignupInput {
   email: string;
   password: string;
