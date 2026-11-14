@@ -8,6 +8,9 @@
 
 import logging
 import math
+import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 
 from sqlalchemy import func, select
@@ -32,6 +35,8 @@ from app.services.reviews import rating_stats
 
 log = logging.getLogger("matching")
 POOL = 50  # 재능·상품 각각에서 먼저 뽑는 개수
+MATCH_REASON_DEADLINE_S = 15  # 추천 이유 생성 최대 대기 시간
+_REASON_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="match-reason")
 ACTIVITY_SATURATION = 10  # 완료 10회면 활동 점수 만점
 
 
@@ -152,10 +157,25 @@ def _ai_reasons(query: str, results: list[MatchCandidate]) -> dict[int, str | No
     }
 
 
+def _ai_reasons_with_deadline(query: str, results: list[MatchCandidate]) -> dict[int, str | None]:
+    """추천 이유는 '있으면 좋은' 정보라서, 정해진 시간 안에 안 오면 템플릿으로 대신해요 (화면이 오래 멈추지 않게)."""
+    future = _REASON_POOL.submit(_ai_reasons, query, results)
+    try:
+        return future.result(timeout=MATCH_REASON_DEADLINE_S)
+    except FutureTimeout:
+        log.warning("match reason timed out after %ss → template", MATCH_REASON_DEADLINE_S)
+        return {}
+    except AIError as e:
+        log.warning("match reason fallback to template: %s", e)
+        return {}
+
+
 def match(db: Session, query: str, *, limit: int = 5, exclude_user_id: int | None = None, with_reasons: bool = True) -> list[MatchCandidate]:
+    t0 = time.monotonic()
     vec = embed_text(query)
     if vec is None:
         raise AIError("요청 문장을 분석하지 못했어요. 잠시 후 다시 시도해 주세요", feature="match")
+    t_embed = time.monotonic()
 
     cands = _collect(db, vec, exclude_user_id)
     th = thresholds()
@@ -200,13 +220,16 @@ def match(db: Session, query: str, *, limit: int = 5, exclude_user_id: int | Non
         )
     results.sort(key=lambda r: r.score, reverse=True)
     results = results[:limit]
+    t_rank = time.monotonic()
 
-    ai: dict[int, str | None] = {}
-    if with_reasons:
-        try:
-            ai = _ai_reasons(query, results)
-        except AIError as e:
-            log.warning("match reason fallback to template: %s", e)
+    ai = _ai_reasons_with_deadline(query, results) if with_reasons else {}
+    log.warning(
+        "match timing: embed %.1fs, rank %.1fs, reasons %.1fs (%d candidates)",
+        t_embed - t0,
+        t_rank - t_embed,
+        time.monotonic() - t_rank,
+        len(results),
+    )
     kept: list[MatchCandidate] = []
     for i, r in enumerate(results):
         if i in ai and ai[i] is None:

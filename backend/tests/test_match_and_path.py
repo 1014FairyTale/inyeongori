@@ -95,6 +95,27 @@ def test_ai_reasons_are_used_and_fall_back_on_failure(client: TestClient, monkey
     assert cands and all(c["reason_source"] == "template" for c in cands)
 
 
+def test_slow_ai_reasons_fall_back_to_template_within_deadline(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    import time as _time
+
+    _people(client)
+    me = Actor(client, "me@example.com", "새내기")
+
+    class SlowLLM:
+        name = "slow"
+
+        def generate_json(self, **_: object) -> str:
+            _time.sleep(3)
+            return json.dumps({"reasons": []})
+
+    _use_llm(monkeypatch, SlowLLM())  # type: ignore[arg-type]
+    monkeypatch.setattr(matching, "MATCH_REASON_DEADLINE_S", 0.5)
+    started = _time.monotonic()
+    cands = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    assert _time.monotonic() - started < 2.5
+    assert cands and all(c["reason_source"] == "template" for c in cands)
+
+
 def test_ai_can_drop_irrelevant_candidates(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     p = _people(client)
     me = Actor(client, "me@example.com", "새내기")
