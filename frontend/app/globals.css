@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fffaf5;
+  --foreground: #1f1a17;
+  --muted: #6b625c;
+  --card: #ffffff;
+  --border: #eadfd6;
+  --brand: #e8590c;
+  --brand-soft: #fff0e6;
+  --ai: #6741d9;
+  --ai-soft: #f3f0ff;
+  --danger: #c92a2a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-ai: var(--ai);
+  --color-ai-soft: var(--ai-soft);
+  --color-danger: var(--danger);
+  --font-sans: "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  word-break: keep-all;
+}
