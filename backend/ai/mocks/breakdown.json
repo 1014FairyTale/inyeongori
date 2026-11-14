@@ -1,0 +1,40 @@
+{
+  "summary": "앱 개발을 처음 배우는 순서대로 다섯 단계로 나눴어요. 한 번에 하나씩 부탁하면 부담 없이 시작할 수 있어요!",
+  "items": [
+    {
+      "title": "개발 환경 설치",
+      "description": "Node.js와 에디터를 설치하고 첫 프로젝트를 실행해 봐요.",
+      "minutes": 20,
+      "category": "개발·IT",
+      "estimated_tokens": 20
+    },
+    {
+      "title": "화면 하나 만들기",
+      "description": "버튼과 입력창이 있는 간단한 화면을 같이 만들어 봐요.",
+      "minutes": 30,
+      "category": "개발·IT",
+      "estimated_tokens": 30
+    },
+    {
+      "title": "로그인 코드 설명",
+      "description": "이메일·비밀번호 로그인이 어떻게 동작하는지 코드로 설명을 들어요.",
+      "minutes": 30,
+      "category": "개발·IT",
+      "estimated_tokens": 35
+    },
+    {
+      "title": "앱 화면 디자인 피드백",
+      "description": "만든 화면의 배치와 색을 보고 개선점을 들어요.",
+      "minutes": 20,
+      "category": "디자인",
+      "estimated_tokens": 25
+    },
+    {
+      "title": "배포해서 친구에게 공유하기",
+      "description": "만든 앱을 인터넷에 올리고 링크로 공유하는 방법을 배워요.",
+      "minutes": 30,
+      "category": "개발·IT",
+      "estimated_tokens": 30
+    }
+  ]
+}

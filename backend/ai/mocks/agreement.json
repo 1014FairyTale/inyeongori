@@ -1,0 +1,23 @@
+{
+  "summary": "발표 PPT, 구성·흐름 피드백, 30분",
+  "terms": {
+    "request_text": "발표용 PPT의 구성과 흐름을 봐 주세요.",
+    "scope": "구성·흐름 피드백 (디자인 수정은 제외)",
+    "quantity": null,
+    "revisions": null,
+    "duration_minutes": 30,
+    "notes": null
+  },
+  "missing": [
+    {
+      "field": "quantity",
+      "question": "PPT는 몇 장 분량인가요?",
+      "options": ["10장 이내", "11~20장", "20장 이상"]
+    },
+    {
+      "field": "revisions",
+      "question": "피드백 반영 후 다시 봐 드릴까요?",
+      "options": ["한 번 보고 끝", "수정본 1회 재검토", "수정본 2회 재검토"]
+    }
+  ]
+}
