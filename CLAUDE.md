@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -76,6 +76,18 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 프롬프트는 "추측 금지" — 수정 횟수·분량은 말하지 않았으면 null + 질문 (실측에서 '수정 1회'를 지어내던 문제 수정)
 - 서버가 답변을 조건에 직접 합치고(숫자 파싱), previous_terms로 이전에 정한 조건을 유지 (AI가 매번 다르게 빠뜨리는 문제 방지)
 
+## AI 매칭 (`services/matching.py`, `POST /match`)
+- 요청 임베딩 → user_talents·listings에서 각 50개 → 사람 단위로 최고 유사도
+- 후보 필터: 유사도 ≥ (기준 - MATCH_MIN_SIMILARITY_MARGIN), 그리고 ≥ (1등 - MATCH_RELATIVE_CUTOFF)
+- 점수 = 0.7×유사도 + 0.2×베이지안 평점/5 + 0.1×log 활동 → 상위 N
+- 이유: 상위 N명을 LLM 1회(`match_reason`)로 생성, AI가 relevant=false로 표시한 후보는 제외, 실패 시 템플릿
+- `provider_stats()`의 평점은 7단계에서 reviews로 채운다 (지금은 ImportError로 건너뜀 → 7단계에서 직접 호출로 바꿀 것)
+- 공개 프로필 `GET /users/{id}`
+
+## 목표 경로 (`plans.kind = path`)
+- 부탁 쪼개기와 같은 테이블·가격 로직 재사용, 단계마다 `why`(왜 필요한지) 추가
+- 각 단계: 가장 비슷한 상품 연결("○○님에게 요청") + "맞는 사람 찾기"(/match?q=단계)
+
 ## 서버 시작 시
 - `warm_up_embeddings()`를 백그라운드 스레드로 실행: 임베딩 모델 미리 로드 + 임베딩이 없거나 모델이 다른 재능·상품 다시 계산. 실패해도 서버는 뜬다.
 
@@ -92,6 +104,7 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 로그인 복원 실패 시 401일 때만 토큰을 지운다 (서버 재시작 중 로그아웃 방지).
 - ⚠️ Windows 바인드 마운트에서는 frontend 컨테이너의 핫 리로드가 안 된다. 프론트 코드를 바꾼 뒤에는 `docker compose restart frontend` (또는 컨테이너를 멈추고 로컬 `npm run dev`).
 - 브라우저 패널 스크린샷이 오른쪽이 잘려 보일 때가 있음 → 레이아웃 판단은 JS로 `scrollWidth`/요소 rect 확인.
+- `Field`/`TextArea`의 `className`은 기본 스타일에 '추가'된다 (덮어쓰기 아님). 높이 조절 등에 사용.
 - AI 결과 UI 공통 컴포넌트: `AiBadge`(✨ AI 제안), `AiLoading`(문구 순환 로딩), 실패 시 ErrorBox + "다시 시도".
 
 ## 결정 사항
