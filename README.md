@@ -2,15 +2,26 @@
 
 > AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는 대학생 재능 교류 플랫폼
 
-현금 없이 토큰으로만 거래해요. "나는 재능이 없다"고 생각하는 학생도 AI의 도움으로 자기 경험 속 재능을 찾고, 요청 범위를 미리 합의해서 갈등 없이 재능을 주고받을 수 있어요.
+"저는 재능이 없어요"라고 말하는 학생도 동아리 총무, 과외, 행사 준비 같은 경험 속에 남에게 줄 수 있는 재능이 있어요.
+인연고리는 **AI가 그 재능을 근거와 함께 찾아 주고**, 학생들이 **현금 없이 토큰으로** 서로의 재능을 나누게 해요.
+"PPT 봐주세요" 같은 모호한 부탁은 **AI가 조건으로 정리해서 미리 합의**하고, 정성껏 도운 사람은 **AI 후기 분석으로 보너스 토큰**을 받아요.
+
+| 해결하려는 문제 | 인연고리의 방법 |
+|---|---|
+| 경험을 재능으로 인식하지 못함 | AI 숨은 재능 발굴 (근거 + 확인 질문, 본인이 확정) |
+| 현금·전문가 위주라 진입 장벽이 높음 | 가입 시 100토큰, 토큰으로만 거래 |
+| 필요한 사람을 찾기 어려움 | AI 매칭, 부탁 쪼개기, 목표 기반 교환 경로 |
+| 모호한 요청으로 인한 기대 차이 | 교환 범위 합의 도우미 + 양측 동의한 합의서 |
+| 정성에 대한 공정한 보상이 없음 | AI 후기 분석 + 규칙 기반 보너스 (남용 방지) |
 
 ## 빠른 시작
 
 준비물: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ```bash
-cp .env.example .env          # 필요하면 JWT_SECRET, POSTGRES_PASSWORD 변경
+cp .env.example .env
 docker compose up -d --build
+docker compose exec backend python -m seed.seed --reset --yes   # 데모 데이터 (선택)
 ```
 
 - 웹: http://localhost:3000
@@ -21,45 +32,93 @@ AI 키가 없어도 `AI_MOCK=true`(기본값)로 모든 기능이 고정 예시 
 
 ### 실제 AI로 실행하기
 1. [Google AI Studio](https://aistudio.google.com)에서 Gemini API 키를 무료로 발급받아요.
-2. `.env`에서 `GEMINI_API_KEY=발급받은키`, `AI_MOCK=false`로 바꿔요.
+2. `.env`에서 **두 줄만** 바꿔요: `GEMINI_API_KEY=발급받은키`, `AI_MOCK=false` (파일 전체를 바꿔 붙이지 마세요)
 3. `docker compose up -d --force-recreate backend`
-4. 처음 재능을 확정할 때 임베딩 모델(bge-m3, 약 2GB)을 내려받아요. 한 번 받으면 `hf_cache` 볼륨에 남아요.
+4. 로컬 임베딩 모델(bge-m3, 약 2GB)은 처음 한 번 내려받고 `hf_cache` 볼륨에 남아요. 서버가 켜질 때 미리 불러와요.
 
-> 백엔드 이미지는 CPU용 PyTorch를 포함해서 약 2.2GB예요. 임베딩 없이 가볍게 빌드하려면
-> `docker compose build --build-arg INSTALL_EMBEDDINGS=false backend` (이때는 `AI_MOCK=true`로 실행)
+> 로컬 백엔드 이미지는 CPU용 PyTorch를 포함해서 약 2.2GB예요. 배포용은 Gemini 임베딩을 써서 약 380MB예요 → [배포 가이드](docs/deploy.md)
+
+## 데모
+
+- 시연 대본: **[docs/demo-scenario.md](docs/demo-scenario.md)** — 재능이 없다던 학생이 가입 → 재능 발굴 → 첫 거래 → 후기 보너스 (약 6분)
+- 시드 데이터: 가상 학생 12명(가상 학교 한빛대·새솔대·가람대), 재능 상품 16개, 완료된 거래·후기 12건, 진행 중 거래 2건
+
+### 데모 계정
+모든 시드 계정의 비밀번호는 같아요: **`demo1234!`** (`SEED_PASSWORD` 환경변수로 바꿀 수 있어요)
+
+| 계정 | 역할 |
+|---|---|
+| `demo@example.com` | 시연용 요청자 (100토큰) |
+| `harin@example.com` | 엑셀요정하린 — 엑셀 정산, 행사 예산 |
+| `seoyeon@example.com` | 발표장인서연 — 발표 리허설, 면접 자기소개 |
+| `jiwoo@example.com` | 코딩하는지우 — 파이썬 과제, 개발 환경 |
+| `doyun@example.com` | 디자인하는도윤 — 포스터·카드뉴스 디자인 |
+| 그 밖에 | `minjun`, `taehyun`, `yuna`, `hyunwoo`, `sohee`, `jiho`, `yerin`, `gunwoo` @example.com |
+
+> ⚠️ 데모 비밀번호는 로컬·시연 전용이에요. 공개 배포 전에는 `SEED_PASSWORD`를 바꾸고 시드를 다시 넣으세요.
 
 ## 환경변수
 
 | 이름 | 설명 | 기본값 |
 |---|---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | DB 계정 | inyeongori / change-me / inyeongori |
-| `DATABASE_URL` | 백엔드 DB 주소 (compose 안에서는 자동 설정) | localhost:5432 |
+| `DATABASE_URL` | 백엔드 DB 주소 (compose 안에서는 자동, `postgresql://`도 자동 변환) | localhost:5432 |
 | `TEST_DATABASE_URL` | pytest용 DB | …/inyeongori_test |
 | `JWT_SECRET` | JWT 서명 키 (**배포 시 반드시 변경**) | — |
 | `JWT_EXPIRE_MINUTES` | 로그인 유지 시간 | 10080 (7일) |
 | `CORS_ORIGINS` | 프론트 주소 (쉼표 구분) | http://localhost:3000 |
 | `AI_MOCK` | true면 AI 호출 대신 고정 응답 | true |
-| `LLM_PROVIDER` / `GEMINI_API_KEY` / `LLM_MODEL` | LLM 설정 (Google AI Studio 무료 키) | gemini / — / gemini-flash-latest |
-| `EMBEDDING_PROVIDER` / `EMBEDDING_MODEL` / `EMBEDDING_DIM` | 임베딩 설정 | local / BAAI/bge-m3 / 1024 |
+| `LLM_PROVIDER` / `GEMINI_API_KEY` / `LLM_MODEL` | LLM 설정 | gemini / — / gemini-3.5-flash-lite |
+| `EMBEDDING_PROVIDER` / `EMBEDDING_MODEL` / `EMBEDDING_DIM` | 임베딩: 로컬 `local`+`BAAI/bge-m3`, 배포 `gemini`+`gemini-embedding-001` | local / BAAI/bge-m3 / 1024 |
+| `INSTALL_EMBEDDINGS` | (빌드 인자) false면 PyTorch 없이 가볍게 빌드 | true |
+| `SEED_PASSWORD` | 시드 계정 비밀번호 | demo1234! |
 | `NEXT_PUBLIC_API_BASE_URL` | 프론트가 부르는 API 주소 | http://localhost:8000/api/v1 |
 
 ## 기능 소개
 
-| 기능 | 상태 |
-|---|---|
-| 회원가입·로그인, 가입 보너스 100토큰 | ✅ 2단계 |
-| 토큰 지갑 (원장 기반, 보류·지급·환불) | ✅ 3단계 |
-| 재능 마켓 + 거래 흐름 (합의서 동의 → 보류 → 완료 → 지급 / 취소 → 환불) | ✅ 3단계 |
-| 숨은 재능 발굴 (AI 후보 + 근거 + 확인 질문 → 맞아요/아니에요/수정 → 임베딩 저장) | ✅ 4단계 |
-| 교환 범위 합의 도우미 ("PPT 봐주세요" → "10장, 구성 피드백, 수정 1회, 30분" + 빠진 조건 질문) | ✅ 5단계 |
-| 부탁 쪼개기 (큰 목표 → 20~30분 활동 + 시세 기반 적정 토큰, 수정·삭제·추가) | ✅ 5단계 |
-| AI 매칭 ("이런 도움이 필요해요" → 상위 5명 + AI 추천 이유) | ✅ 6단계 |
-| 목표 기반 교환 경로 (목표 → 순서대로 받을 도움 + 왜 필요한지 + 단계별 제공자 연결) | ✅ 6단계 |
-| 후기 + AI 후기 분석(기여도 점수·판단 근거) + 보너스 토큰(남용 방지 규칙) | ✅ 7단계 |
+| 기능 | 어디서 | 핵심 |
+|---|---|---|
+| 🔐 가입·로그인, 가입 보너스 | `/signup` | 가입하면 100토큰 |
+| ✨ 숨은 재능 발굴 | `/onboarding` | 자기소개·문답 → AI 후보 + 근거 + 확인 질문 → 맞아요/아니에요/수정 → 확정한 것만 저장(임베딩) |
+| 🛍️ 재능 마켓 | `/market` | 등록·검색·카테고리, 가격은 제공자가 정함 (토큰 = 가격) |
+| 🤝 교환 범위 합의 도우미 | 상품 → 요청하기 | "PPT 봐주세요" → "10장, 구성 피드백, 수정 1회, 30분" + 빠진 조건을 보기 버튼으로 질문 |
+| 🪙 토큰 거래 | `/exchanges` | 양측이 합의서에 동의하면 보류 → 양측 완료 시 지급 / 취소 시 환불, 원장 기반 |
+| 🔎 AI 매칭 | `/match` | 필요한 도움 → 재능 일치도·평점·활동으로 상위 5명 + AI 추천 이유 |
+| ✂️ 부탁 쪼개기 | `/plans` | 큰 목표 → 20~30분 활동, 시세 기반 적정 토큰, 수정·삭제·추가 |
+| 🧭 목표 기반 교환 경로 | `/plans` | 목표 → 순서대로 받을 도움 + 왜 필요한지 + 단계별 제공자 연결 |
+| 🎁 AI 후기 분석 + 보너스 | 완료된 거래 | 기여도 점수·판단 근거 → 규칙 기반 보너스 (상한, 반복 거래 감액, 하루 상한) |
+| 👛 지갑 | `/wallet` | 사용 가능·보류 중 토큰, 거래 내역 |
+
+모든 AI 결과에는 "AI 제안" 표시가 있고, 사용자가 고칠 수 있어요. AI가 실패하면 "다시 시도"가 나와요.
+
+## 구조
+
+```
+frontend/  Next.js 16 (App Router, TS strict) + Tailwind 4
+backend/   FastAPI + SQLAlchemy 2 + Alembic + Pydantic v2
+  app/     routers · services(ledger, exchange_flow, discovery, matching, pricing, bonus …) · models · schemas
+  ai/      providers(gemini, gemini_embed, local_embed, mock) · prompts/*.md · mocks/*.json · structured.py(검증·재시도)
+  seed/    데모 시드 데이터
+  tests/   pytest 75개 (실제 PostgreSQL, 동시성 테스트 포함)
+docs/      demo-scenario.md, deploy.md
+```
+
+- 토큰은 **원장(ledger) 기반**: 모든 증감을 기록하고, 잔액 음수 방지(DB 제약 + 행 잠금), 멱등 키로 이중 지급 방지. 전체 잔액 합은 항상 0.
+- AI 호출은 모두 `backend/ai/` provider 인터페이스를 거쳐서 공급사를 바꿀 수 있어요.
 
 ## 스크린샷
 
-_(8단계에서 추가)_
+> 발표 자료용 자리예요. 휴대폰 크기(375px)로 캡처하는 걸 추천해요.
+
+| 화면 | 파일 |
+|---|---|
+| 첫 화면 ("저는 재능이 없어요, 정말 그럴까요?") | `docs/screenshots/01-home.png` |
+| AI 재능 후보 (근거 + 확인 질문) | `docs/screenshots/02-discovery.png` |
+| 합의 도우미 (빠진 조건 질문) | `docs/screenshots/03-agreement.png` |
+| AI 매칭 결과 | `docs/screenshots/04-match.png` |
+| 거래 진행 (합의서·보류) | `docs/screenshots/05-exchange.png` |
+| AI 후기 분석 + 보너스 | `docs/screenshots/06-review-bonus.png` |
+| 목표 경로 | `docs/screenshots/07-path.png` |
 
 ## 결정 사항
 
@@ -88,6 +147,13 @@ _(8단계에서 추가)_
 | — | 수락 후 조건 변경 | 불가 (취소 후 다시 요청) | 보류된 금액과 합의 내용이 어긋나지 않게 |
 | — | 남의 거래 조회 | 404로 응답 (존재 여부도 숨김) | 개인정보 |
 | — | 하단 탭 내비게이션 | 홈·마켓·거래·지갑 | 모바일 우선 |
+| D2-1 | 배포 환경 임베딩 | 배포만 `gemini-embedding-001`(1024차원, 무료 등급), 로컬은 bge-m3 유지. 빌드 인자 `INSTALL_EMBEDDINGS=false`로 이미지 2.2GB → 380MB | 기획자 결정. bge-m3는 메모리 2GB 이상이라 Railway 비용·시작 시간 부담 |
+| — | 유사도 기준 분리 | 모델별로 price/match/relative/strong 기준을 따로 둠 (`EMBEDDING_THRESHOLDS`) | 실측: bge-m3 관련 0.49~/무관 ~0.47, Gemini 관련 0.85~/무관 ~0.83 — 점수 분포가 완전히 다름 |
+| — | 'strong' 기준 | 1등과 차이가 커도 확실히 관련 있는 후보(bge 0.58 이상)는 남김 | 데모 리허설에서 1등 0.83, 관련 있는 2등 0.63이 잘림 |
+| — | 시드 데이터 생성 방식 | 실제 서비스 함수(가입→등록→요청→수락→완료→후기→보너스)를 그대로 호출. 후기 분석 점수만 시드에 고정 | 원장 정합성이 항상 보장되고, AI 호출 없이 재현 가능 |
+| — | 데모 계정 비밀번호 | 모든 시드 계정 동일, README에 기록 (`SEED_PASSWORD`로 변경 가능) | 기획자 결정. 시연 중 빠른 로그인 |
+| — | 시드 인물 | 모두 가상 인물·가상 학교(한빛대·새솔대·가람대), 이메일은 예약 도메인 example.com | 실존 인물 정보 미사용 |
+| — | 배포 DB URL | `postgresql://`·`postgres://`를 `postgresql+psycopg://`로 자동 변환 | Railway가 주는 형식 그대로 사용 |
 | — | Gemini 모델 | `gemini-3.5-flash-lite` (재능 발굴 약 4~11초). `gemini-4-hydrogen`은 결과는 좋지만 약 54초라 데모에 느림. `gemini-flash-latest`는 이 키에서 404 | 2026-11-14 실제 호출로 비교 |
 | — | 후기 작성자 | 완료된 거래의 요청자만, 거래당 1회 | 기획: 구매자가 후기 |
 | — | AI 역할 vs 규칙 | AI는 기여도 점수·근거·주의점만 판단, 금액은 D5-A 규칙으로 계산 | AI가 금액을 직접 정하면 남용·편차 위험 |

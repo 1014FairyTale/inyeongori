@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 ✅ · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 ✅ · 8. 데모 준비(시드·시나리오·배포) ✅
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -29,6 +29,7 @@ cp .env.example .env                 # 처음 한 번
 docker compose up -d --build         # db + backend(:8000) + frontend(:3000)
 docker compose exec backend pytest   # 백엔드 테스트 (inyeongori_test DB 사용)
 docker compose exec backend alembic revision -m "설명"   # 마이그레이션 생성 (수동 작성)
+docker compose exec -e PYTHONIOENCODING=utf-8 backend python -m seed.seed --reset --yes   # 데모 시드 (DB 전체 초기화!)
 cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 검사
 ```
 - ⚠️ 이 PC는 Windows 애플리케이션 제어 정책이 SQLAlchemy·argon2의 네이티브 DLL을 차단한다. **백엔드는 로컬 venv가 아니라 Docker 안에서 실행·테스트**한다. (로컬은 `py -3 -m compileall`로 문법 검사만 가능)
@@ -95,6 +96,15 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 하루 상한 동시성: 제공자 available 계정을 먼저 FOR UPDATE → 같은 제공자 보너스 계산이 줄을 섬. 풀 계정도 FOR UPDATE로 읽음.
 - AI 실패 시 후기만 저장, `POST /exchanges/{id}/review/analyze`로 재시도 (이미 분석됐으면 그대로 반환 → 중복 지급 없음)
 - 하루 기준은 한국 시간(UTC+9 고정 오프셋, slim 이미지에 tzdata가 없어서)
+
+## 임베딩 기준값 (`EMBEDDING_THRESHOLDS`)
+- 모델별 price / match / relative / strong. 모델을 바꾸거나 추가하면 반드시 실측해서 넣는다 (관련·무관 쌍 유사도 분포).
+- 배포는 `EMBEDDING_PROVIDER=gemini` + `gemini-embedding-001`(1024), 로컬은 bge-m3. 모델이 바뀌면 서버 시작 시 backfill이 다시 임베딩한다.
+
+## 시드·데모
+- `backend/seed/data.py`(가상 인물), `seed.py`(실제 서비스 함수로 생성, 후기 분석은 SeedLLM으로 고정 점수)
+- 데모 대본 `docs/demo-scenario.md`, 배포 가이드 `docs/deploy.md`
+- 시드 전에 개발 DB에 사용자가 직접 만든 계정이 있으면 지우기 전에 확인받는다.
 
 ## 서버 시작 시
 - `warm_up_embeddings()`를 백그라운드 스레드로 실행: 임베딩 모델 미리 로드 + 임베딩이 없거나 모델이 다른 재능·상품 다시 계산. 실패해도 서버는 뜬다.
