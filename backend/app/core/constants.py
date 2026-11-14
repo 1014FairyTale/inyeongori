@@ -46,4 +46,12 @@ MATCH_RATING_PRIOR_WEIGHT = 3
 # ---- 부탁 쪼개기 적정 토큰 (5단계에서 사용) ----
 # 비슷한 상품 가격의 중앙값을 쓰고, 비슷한 상품이 이 개수보다 적으면 AI 추정으로 넘어가요.
 PRICE_SUGGEST_MIN_SIMILAR = 3
-PRICE_SUGGEST_SIMILARITY_THRESHOLD = 0.55
+PRICE_SUGGEST_TOP_K = 5
+# 코사인 유사도 기준. 임베딩 모델마다 점수 분포가 달라서 따로 둬요.
+#  - bge-m3 실측: 관련 있는 문장 ≈ 0.64, 관련 없는 문장 ≈ 0.35
+SIMILARITY_THRESHOLD = {"BAAI/bge-m3": 0.55, "mock-ngram": 0.25}
+SIMILARITY_THRESHOLD_DEFAULT = 0.55
+PRICE_FALLBACK_TOKENS = 30  # 시세도 AI 추정도 없을 때 (예: 사용자가 직접 추가한 활동)
+
+# ---- 부탁 쪼개기 ----
+PLAN_MAX_ITEMS = 12

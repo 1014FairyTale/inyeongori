@@ -13,6 +13,7 @@ import enum
 from datetime import datetime
 from typing import Any
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -62,6 +63,9 @@ class Listing(TimestampMixin, Base):
     status: Mapped[ListingStatus] = mapped_column(
         _enum(ListingStatus, "listing_status"), default=ListingStatus.ACTIVE, server_default="active"
     )
+    # 시세 기반 가격 제안·매칭용 (제목·설명이 바뀌면 다시 계산)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1024))
+    embedding_model: Mapped[str | None] = mapped_column(String(80))
 
 
 class Exchange(TimestampMixin, Base):

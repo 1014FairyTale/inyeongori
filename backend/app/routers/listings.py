@@ -9,6 +9,7 @@ from app.deps import DB, CurrentUser
 from app.errors import AppError
 from app.models import Exchange, ExchangeStatus, Listing, ListingStatus, User
 from app.schemas.market import ListingCreate, ListingOut, ListingPage, ListingUpdate, UserBrief
+from app.services.embeddings import embed_listing
 
 router = APIRouter(prefix="/listings", tags=["listings"])
 
@@ -80,6 +81,7 @@ def list_listings(
 def create_listing(req: ListingCreate, user: CurrentUser, db: DB) -> ListingOut:
     listing = Listing(provider_id=user.id, **req.model_dump())
     db.add(listing)
+    embed_listing(listing)  # 시세 제안·매칭용. 실패해도 등록은 진행돼요.
     db.commit()
     db.refresh(listing)
     return _out(listing, user)
@@ -105,9 +107,11 @@ def update_listing(listing_id: int, req: ListingUpdate, user: CurrentUser, db: D
     listing, provider = _get(db, listing_id)
     if listing.provider_id != user.id:
         raise AppError("FORBIDDEN", "내 상품만 수정할 수 있어요", 403)
-    for k, v in req.model_dump(exclude_unset=True).items():
-        if v is not None:
-            setattr(listing, k, v)
+    changes = {k: v for k, v in req.model_dump(exclude_unset=True).items() if v is not None}
+    for k, v in changes.items():
+        setattr(listing, k, v)
+    if changes.keys() & {"title", "description", "category"}:
+        embed_listing(listing)
     db.commit()
     db.refresh(listing)
     return _out(listing, provider, _completed_counts(db, [listing.id]).get(listing.id, 0))

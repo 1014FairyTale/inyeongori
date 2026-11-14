@@ -1,19 +1,22 @@
+import logging
+import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from ai.providers.base import AIError
 from app.config import get_settings
 from app.core.constants import BONUS_POOL_INITIAL_TOKENS
 from app.db import SessionLocal
 from app.errors import register_error_handlers
-from fastapi import Request
-from fastapi.responses import JSONResponse
-
-from ai.providers.base import AIError
-from app.routers import auth, discovery, exchanges, listings, wallet
+from app.routers import auth, discovery, exchanges, listings, plans, wallet
+from app.services.embeddings import backfill_all
 from app.services.ledger import ensure_system_accounts
+
+log = logging.getLogger("app")
 
 
 def bootstrap() -> None:
@@ -22,9 +25,22 @@ def bootstrap() -> None:
         db.commit()
 
 
+def warm_up_embeddings() -> None:
+    """임베딩 모델을 미리 불러오고, 임베딩이 없거나 모델이 바뀐 재능·상품을 채워요.
+    서버 시작을 막지 않도록 백그라운드 스레드에서 실행해요."""
+    try:
+        with SessionLocal() as db:
+            counts = backfill_all(db)
+            db.commit()
+        log.warning("embeddings ready: %s", counts)
+    except Exception:  # noqa: BLE001 - 실패해도 서버는 계속 동작
+        log.exception("embedding warm-up failed")
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     bootstrap()
+    threading.Thread(target=warm_up_embeddings, daemon=True).start()
     yield
 
 
@@ -62,6 +78,7 @@ def create_app(*, run_bootstrap: bool = True) -> FastAPI:
     api.include_router(exchanges.router)
     api.include_router(wallet.router)
     api.include_router(discovery.router)
+    api.include_router(plans.router)
     app.include_router(api)
     return app
 
