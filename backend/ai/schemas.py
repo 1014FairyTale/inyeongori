@@ -84,6 +84,18 @@ class PathAI(BaseModel):
     steps: list[PathStepAI] = Field(min_length=2, max_length=6)
 
 
+# ---- 후기 분석 ----
+
+class ReviewAnalysisAI(BaseModel):
+    contribution_score: int = Field(ge=0, le=100, description="제공자의 기여도 점수 0~100")
+    summary: str = Field(max_length=150, description="후기를 한 문장으로 요약 (존댓말)")
+    reasons: list[str] = Field(min_length=1, max_length=4, description="점수를 매긴 근거. 후기의 구체적인 내용을 짚어서")
+    flags: list[str] = Field(
+        max_length=4,
+        description="주의할 점 (예: 구체적인 내용이 없음, 별점과 내용이 맞지 않음, 거래와 관련 없는 내용). 없으면 빈 배열",
+    )
+
+
 # ---- 매칭 추천 이유 ----
 
 class MatchReasonAI(BaseModel):
