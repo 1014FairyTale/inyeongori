@@ -182,6 +182,8 @@ export interface Exchange {
   agreement_versions: number;
   actions: ExchangeAction[];
   has_review: boolean;
+  chat_state: ChatState;
+  unread_count: number;
   created_at: string;
   accepted_at: string | null;
   completed_at: string | null;
@@ -196,7 +198,25 @@ export interface ExchangeSummary {
   counterpart: UserBrief;
   my_role: "requester" | "provider";
   needs_my_action: boolean;
+  unread_count: number;
   created_at: string;
+}
+
+export type ChatState = "open" | "readonly" | "closed";
+
+export interface ChatMessage {
+  id: number;
+  kind: "user" | "system";
+  sender_id: number | null;
+  mine: boolean;
+  body: string;
+  created_at: string;
+}
+
+export interface ChatResponse {
+  state: ChatState;
+  messages: ChatMessage[];
+  other_last_read_id: number | null;
 }
 
 export interface LedgerItem {

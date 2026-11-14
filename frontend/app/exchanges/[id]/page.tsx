@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TermsForm } from "@/components/TermsForm";
 import { TokenAmount } from "@/components/TokenAmount";
 import { ReviewSection } from "@/components/ReviewSection";
+import { ChatPanel } from "@/components/ChatPanel";
 import { Button, Card, ErrorBox } from "@/components/ui";
 
 const ACTIONS: Record<
@@ -185,6 +186,22 @@ function ExchangeDetail() {
 
       <div className="rounded-xl bg-brand-soft px-4 py-3 text-sm">{hint}</div>
 
+      {ex.chat_state !== "closed" && (
+        <a href="#chat" className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm">
+          <span>
+            💬 <b>{counterpart.nickname}</b>님과 대화하기
+          </span>
+          {ex.unread_count > 0 ? (
+            <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">새 메시지 {ex.unread_count}</span>
+          ) : (
+            <span className="text-muted">↓</span>
+          )}
+        </a>
+      )}
+      {ex.status === "requested" && (
+        <p className="text-center text-xs text-muted">거래가 수락되면 {counterpart.nickname}님과 채팅할 수 있어요.</p>
+      )}
+
       {ex.status === "completed" && (
         <ReviewSection
           exchange={ex}
@@ -257,6 +274,20 @@ function ExchangeDetail() {
             </Button>
           )}
         </div>
+      )}
+
+      {ex.chat_state !== "closed" && (
+        <ChatPanel
+          key={ex.id}
+          exchangeId={ex.id}
+          initialState={ex.chat_state}
+          counterpartName={counterpart.nickname}
+          onSystemMessage={() => {
+            // 상대가 완료·취소를 하면 안내 메시지가 와요 → 상태·버튼·잔액을 새로 불러요
+            void load();
+            void refresh();
+          }}
+        />
       )}
     </div>
   );

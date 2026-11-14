@@ -68,6 +68,9 @@ function ExchangeList() {
                     {x.needs_my_action && (
                       <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">내 차례</span>
                     )}
+                    {x.unread_count > 0 && (
+                      <span className="rounded-full bg-ai px-2 py-0.5 text-xs font-bold text-white">💬 {x.unread_count}</span>
+                    )}
                   </div>
                   <TokenAmount amount={x.price_tokens} />
                 </div>
