@@ -51,7 +51,12 @@ def _migrate() -> Iterator[None]:
 @pytest.fixture(autouse=True)
 def _clean_db() -> Iterator[None]:
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE ledger_transfers, token_accounts, users RESTART IDENTITY CASCADE"))
+        conn.execute(
+            text(
+                "TRUNCATE ledger_transfers, agreements, exchanges, listings, token_accounts, users "
+                "RESTART IDENTITY CASCADE"
+            )
+        )
     with TestingSession() as db:
         ensure_system_accounts(db, BONUS_POOL_INITIAL_TOKENS)
         db.commit()
@@ -87,3 +92,37 @@ def signup(client: TestClient, email: str = "a@example.com", nickname: str = "�
     )
     assert r.status_code == 201, r.text
     return r.json()
+
+
+class Actor:
+    """테스트용 사용자. 토큰을 들고 API를 불러요."""
+
+    def __init__(self, client: TestClient, email: str, nickname: str) -> None:
+        body = signup(client, email, nickname)
+        self.client = client
+        self.id: int = body["me"]["user"]["id"]
+        self.headers = {"Authorization": f"Bearer {body['access_token']}"}
+
+    def get(self, path: str):  # noqa: ANN201
+        return self.client.get(f"/api/v1{path}", headers=self.headers)
+
+    def post(self, path: str, json: dict | None = None):  # noqa: ANN201
+        return self.client.post(f"/api/v1{path}", headers=self.headers, json=json)
+
+    def patch(self, path: str, json: dict):  # noqa: ANN201
+        return self.client.patch(f"/api/v1{path}", headers=self.headers, json=json)
+
+    def wallet(self) -> tuple[int, int]:
+        w = self.get("/wallet").json()
+        return w["available"], w["escrow"]
+
+    def create_listing(self, price: int = 50, title: str = "테트리스 기초 강의") -> int:
+        r = self.post(
+            "/listings",
+            {"title": title, "description": "T-스핀까지 차근차근 알려 드려요", "category": "운동·게임", "price_tokens": price},
+        )
+        assert r.status_code == 201, r.text
+        return r.json()["id"]
+
+    def request(self, listing_id: int, text: str = "테트리스 기초를 배우고 싶어요"):  # noqa: ANN201
+        return self.post("/exchanges", {"listing_id": listing_id, "terms": {"request_text": text, "duration_minutes": 30}})
