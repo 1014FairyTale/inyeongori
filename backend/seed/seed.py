@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from typing import Any
 
 from sqlalchemy import text
@@ -38,17 +39,19 @@ TABLES = (
 
 
 class SeedLLM:
-    """시드용: 미리 정해 둔 후기 분석 결과를 차례로 돌려줘요."""
+    """시드용: 후기 분석은 미리 정해 둔 결과를 돌려주고, 그 밖의 호출은 원래 LLM에 넘겨요.
+    (서버가 켜진 상태에서 시드가 돌 때 다른 사용자의 AI 요청이 영향을 받지 않게)"""
 
     name = "seed"
 
-    def __init__(self) -> None:
+    def __init__(self, fallback: Callable[[], Any]) -> None:
         self.queue: list[dict[str, Any]] = []
+        self._fallback = fallback
 
-    def generate_json(self, *, feature: str, **_: Any) -> str:
-        if feature != "review_analysis" or not self.queue:
-            raise RuntimeError(f"시드에서 예상하지 못한 AI 호출: {feature}")
-        return json.dumps(self.queue.pop(0), ensure_ascii=False)
+    def generate_json(self, *, feature: str, **kwargs: Any) -> str:
+        if feature == "review_analysis" and self.queue:
+            return json.dumps(self.queue.pop(0), ensure_ascii=False)
+        return self._fallback().generate_json(feature=feature, **kwargs)
 
 
 def email(handle: str) -> str:
@@ -96,9 +99,17 @@ def run(db: Session, password: str) -> dict[str, int]:
     db.commit()
     print(f"  학생 {len(STUDENTS)}명 + 데모 계정 1명, 상품 {len(listings)}개")
 
-    llm = SeedLLM()
+    original_get_llm = ai.structured.get_llm
+    llm = SeedLLM(original_get_llm)
     ai.structured.get_llm = lambda: llm  # type: ignore[assignment]
+    try:
+        _trades(db, users, listings, llm)
+    finally:
+        ai.structured.get_llm = original_get_llm  # type: ignore[assignment]
+    return {"users": len(users), "listings": len(listings), "completed": len(COMPLETED)}
 
+
+def _trades(db: Session, users: dict[str, User], listings: dict[str, Listing], llm: SeedLLM) -> None:
     for req, prov, title, request_text, rating, good, bad, score, reasons in COMPLETED:
         requester, provider, listing = users[req], users[prov], listings[title]
         terms = AgreementTerms(request_text=request_text, duration_minutes=listing.est_minutes)
@@ -121,7 +132,15 @@ def run(db: Session, password: str) -> dict[str, int]:
             exchange_flow.agree(db, provider, ex.id)
         db.commit()
     print(f"  진행 중인 거래 {len(IN_PROGRESS)}건")
-    return {"users": len(users), "listings": len(listings), "completed": len(COMPLETED)}
+
+
+def seed_if_empty() -> bool:
+    """사용자가 한 명도 없을 때만 시드를 넣어요 (배포 환경의 SEED_IF_EMPTY=true). 넣었으면 True."""
+    with SessionLocal() as db:
+        if db.query(User).filter(User.is_system.is_(False)).first() is not None:
+            return False
+        run(db, os.environ.get("SEED_PASSWORD") or DEFAULT_PASSWORD)
+    return True
 
 
 def main() -> None:

@@ -23,6 +23,21 @@ def test_seed_builds_consistent_demo_data(db: Session, monkeypatch) -> None:  # 
     _assert_ledger_consistent(db)
 
 
+def test_seed_restores_llm_and_passes_through_other_features(db: Session) -> None:
+    before = ai.structured.get_llm
+    with TestingSession() as s:
+        run(s, "demo1234!")
+    assert ai.structured.get_llm is before  # 시드가 끝나면 원래 LLM으로 돌아와요
+
+
+def test_seed_if_empty_only_runs_once(monkeypatch) -> None:  # noqa: ANN001
+    import seed.seed as seed_mod
+
+    monkeypatch.setattr(seed_mod, "SessionLocal", TestingSession)
+    assert seed_mod.seed_if_empty() is True
+    assert seed_mod.seed_if_empty() is False
+
+
 def test_seed_users_can_login(client, db: Session, monkeypatch) -> None:  # noqa: ANN001
     monkeypatch.setattr(ai.structured, "get_llm", ai.structured.get_llm)
     with TestingSession() as s:

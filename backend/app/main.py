@@ -27,7 +27,15 @@ def bootstrap() -> None:
 
 def warm_up_embeddings() -> None:
     """임베딩 모델을 미리 불러오고, 임베딩이 없거나 모델이 바뀐 재능·상품을 채워요.
+    SEED_IF_EMPTY=true면 DB가 비어 있을 때 데모 시드도 넣어요.
     서버 시작을 막지 않도록 백그라운드 스레드에서 실행해요."""
+    if get_settings().seed_if_empty:
+        try:
+            from seed.seed import seed_if_empty
+
+            log.warning("seed: %s", "inserted demo data" if seed_if_empty() else "skipped (DB not empty)")
+        except Exception:  # noqa: BLE001
+            log.exception("seed failed")
     try:
         with SessionLocal() as db:
             counts = backfill_all(db)

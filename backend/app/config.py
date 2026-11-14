@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-m3"
     embedding_dim: int = 1024
 
+    # 배포 환경: 서버 시작 시 DB에 사용자가 없으면 데모 시드를 넣어요
+    seed_if_empty: bool = False
+
     @field_validator("database_url", "test_database_url")
     @classmethod
     def _psycopg_scheme(cls, v: str) -> str:

@@ -48,10 +48,9 @@ Railway와 Vercel은 GitHub 저장소에서 코드를 가져가요.
 
 4. **Settings → Networking → Generate Domain**으로 주소를 만들어요 (예: `https://inyeongori-backend.up.railway.app`).
 5. 배포가 끝나면 `https://<백엔드 주소>/api/v1/health` 가 `{"status":"ok", ...}` 를 돌려주는지 확인해요.
-6. 시드 데이터 넣기: 백엔드 서비스의 ⋯ 메뉴에서 셸(또는 `railway run`)로
-   ```bash
-   python -m seed.seed --reset --yes
-   ```
+6. 시드 데이터 넣기: Variables에 `SEED_IF_EMPTY` = `true`를 추가하면, 서버가 켜질 때 **DB에 사용자가 없을 때만** 데모 시드를 넣어요 (약 30초, 백그라운드).
+   - 이미 사용자가 있으면 아무것도 하지 않아요. 처음부터 다시 넣고 싶으면 CLI(`railway run python -m seed.seed --reset --yes`)를 써요.
+   - 시드 계정 비밀번호는 `SEED_PASSWORD` 값이에요.
 
 ## 4. Vercel: 프론트엔드
 1. https://vercel.com → Add New → Project → 이 저장소 Import
