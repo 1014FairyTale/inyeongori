@@ -11,8 +11,9 @@ def get_llm() -> LLMProvider:
     if s.ai_mock:
         return MockLLM()
     if s.llm_provider == "gemini":
-        # 4단계에서 ai/providers/gemini.py 를 추가해요
-        raise AIError("Gemini provider는 4단계에서 연결돼요. 지금은 AI_MOCK=true로 실행해 주세요")
+        from ai.providers.gemini import GeminiLLM
+
+        return GeminiLLM(api_key=s.gemini_api_key, model=s.llm_model)
     raise AIError(f"지원하지 않는 LLM_PROVIDER: {s.llm_provider}")
 
 
@@ -22,6 +23,12 @@ def get_embedder() -> EmbeddingProvider:
     if s.ai_mock:
         return MockEmbedder(s.embedding_dim)
     if s.embedding_provider == "local":
-        # 4단계에서 ai/providers/local_embed.py (bge-m3) 를 추가해요
-        raise AIError("로컬 임베딩(bge-m3)은 4단계에서 연결돼요. 지금은 AI_MOCK=true로 실행해 주세요")
+        from ai.providers.local_embed import LocalEmbedder
+
+        return LocalEmbedder(s.embedding_model, s.embedding_dim)
     raise AIError(f"지원하지 않는 EMBEDDING_PROVIDER: {s.embedding_provider}")
+
+
+def embedding_model_name() -> str:
+    s = get_settings()
+    return "mock-ngram" if s.ai_mock else s.embedding_model
