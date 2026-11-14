@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +29,15 @@ class Settings(BaseSettings):
     embedding_provider: str = "local"
     embedding_model: str = "BAAI/bge-m3"
     embedding_dim: int = 1024
+
+    @field_validator("database_url", "test_database_url")
+    @classmethod
+    def _psycopg_scheme(cls, v: str) -> str:
+        """Railway 등은 postgresql:// 또는 postgres:// 로 줘요. SQLAlchemy가 psycopg3를 쓰도록 바꿔요."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix) :]
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:
