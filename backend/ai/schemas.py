@@ -66,3 +66,31 @@ class BreakdownItemAI(BaseModel):
 class BreakdownAI(BaseModel):
     summary: str = Field(max_length=200, description="목표를 어떻게 나눴는지 한두 문장 (존댓말)")
     items: list[BreakdownItemAI] = Field(min_length=2, max_length=8)
+
+
+# ---- 목표 기반 교환 경로 ----
+
+class PathStepAI(BaseModel):
+    title: str = Field(min_length=2, max_length=60, description="이 단계에서 받을 도움 (예: 기획서 피드백)")
+    description: str = Field(max_length=200, description="이 단계에서 무엇을 하는지 한 문장")
+    why: str = Field(max_length=150, description="목표를 이루는 데 이 단계가 왜 필요한지 한 문장")
+    minutes: int = Field(ge=10, le=90, description="예상 소요 시간")
+    category: str = Field(description="주어진 카테고리 목록 중 하나")
+    estimated_tokens: int = Field(ge=1, le=500, description="마켓 가격대를 참고한 적정 토큰")
+
+
+class PathAI(BaseModel):
+    summary: str = Field(max_length=200, description="경로 전체를 한두 문장으로 (존댓말)")
+    steps: list[PathStepAI] = Field(min_length=2, max_length=6)
+
+
+# ---- 매칭 추천 이유 ----
+
+class MatchReasonAI(BaseModel):
+    candidate_index: int = Field(ge=0, description="입력 후보 목록의 번호")
+    relevant: bool = Field(description="이 후보의 재능이 요청을 실제로 도와줄 수 있으면 true, 관련 없으면 false")
+    reason: str = Field(min_length=5, max_length=80, description="왜 이 사람이 요청에 맞는지 한 줄 (존댓말)")
+
+
+class MatchReasonsAI(BaseModel):
+    reasons: list[MatchReasonAI] = Field(max_length=10)
