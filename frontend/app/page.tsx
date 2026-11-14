@@ -51,7 +51,18 @@ export default function Home() {
         <span>
           <b>✂️ 큰 목표, 작은 부탁으로 쪼개기</b>
           <br />
-          <span className="text-sm">&ldquo;앱 개발 배우고 싶어요&rdquo; → 20~30분 활동으로</span>
+          <span className="text-sm">&ldquo;공모전 나가고 싶어요&rdquo; → 필요한 도움을 순서대로</span>
+        </span>
+        <span aria-hidden>→</span>
+      </Link>
+      <Link
+        href={me ? "/match" : "/signup?next=/match"}
+        className="flex items-center justify-between rounded-2xl border border-border bg-card px-5 py-4"
+      >
+        <span>
+          <b>🔎 도와줄 사람 찾기</b>
+          <br />
+          <span className="text-sm text-muted">필요한 도움을 적으면 AI가 맞는 학생을 추천해요</span>
         </span>
         <span aria-hidden>→</span>
       </Link>

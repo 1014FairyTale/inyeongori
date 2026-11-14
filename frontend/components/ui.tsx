@@ -23,16 +23,17 @@ export function Field({
   label,
   hint,
   error,
+  className = "",
   ...rest
 }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string }) {
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-medium">{label}</span>
       <input
+        {...rest}
         className={`w-full rounded-xl border bg-card px-3.5 py-3 text-base outline-none focus:border-brand ${
           error ? "border-danger" : "border-border"
-        }`}
-        {...rest}
+        } ${className}`}
       />
       {error ? (
         <span className="text-sm text-danger">{error}</span>
@@ -47,16 +48,18 @@ export function TextArea({
   label,
   hint,
   error,
+  className = "min-h-24",
   ...rest
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string }) {
+  // className은 기본 스타일을 덮어쓰지 않고 '추가'돼요 (높이 조절용)
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-medium">{label}</span>
       <textarea
-        className={`min-h-24 w-full rounded-xl border bg-card px-3.5 py-3 text-base outline-none focus:border-brand ${
-          error ? "border-danger" : "border-border"
-        }`}
         {...rest}
+        className={`block w-full rounded-xl border bg-card px-3.5 py-3 text-base outline-none focus:border-brand ${
+          error ? "border-danger" : "border-border"
+        } ${className}`}
       />
       {error ? (
         <span className="text-sm text-danger">{error}</span>

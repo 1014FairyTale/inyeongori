@@ -100,7 +100,7 @@ function PlanEditor() {
   return (
     <div className="space-y-5">
       <Link href="/plans" className="text-sm text-muted">
-        ← 부탁 쪼개기
+        ← {plan.kind === "path" ? "목표 경로" : "부탁 쪼개기"}
       </Link>
       <Card className="space-y-2">
         <div className="flex items-center justify-between">
@@ -228,6 +228,7 @@ function PlanEditor() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs text-muted">
+                      {plan.kind === "path" && i > 0 ? "→ " : ""}
                       {i + 1}단계 · {it.category} · 약 {it.minutes}분 {it.edited && "· ✏️ 수정함"}
                     </p>
                     <p className="font-semibold">{it.title}</p>
@@ -235,6 +236,7 @@ function PlanEditor() {
                   </div>
                   <TokenAmount amount={it.suggested_tokens} className="shrink-0" />
                 </div>
+                {it.why && <p className="rounded-lg bg-ai-soft px-3 py-2 text-sm text-ai">🧭 왜 필요해요? {it.why}</p>}
                 <p className="text-xs text-muted">💡 {basisLabel(it)}</p>
                 <div className="flex flex-wrap gap-2 text-sm">
                   {it.linked_listing ? (
@@ -243,10 +245,10 @@ function PlanEditor() {
                     </Link>
                   ) : null}
                   <Link
-                    href={`/market?q=${encodeURIComponent(it.title)}`}
-                    className="rounded-full border border-border px-3 py-1.5 text-muted"
+                    href={`/match?q=${encodeURIComponent(`${it.title}: ${it.description ?? ""}`.slice(0, 300))}`}
+                    className="rounded-full border border-ai/40 px-3 py-1.5 font-medium text-ai"
                   >
-                    마켓에서 찾기
+                    🔎 맞는 사람 찾기
                   </Link>
                 </div>
               </li>

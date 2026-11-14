@@ -270,6 +270,7 @@ export interface PlanItem {
   position: number;
   title: string;
   description: string | null;
+  why: string | null;
   minutes: number;
   category: string;
   suggested_tokens: number;
@@ -297,6 +298,33 @@ export interface PlanSummary {
   item_count: number;
   total_tokens: number;
   created_at: string;
+}
+
+export interface MatchCandidate {
+  user: UserBrief;
+  matched_talent: string | null;
+  listing: { id: number; title: string; price_tokens: number } | null;
+  similarity: number;
+  rating_avg: number | null;
+  rating_count: number;
+  completed_count: number;
+  score: number;
+  reason: string;
+  reason_source: "ai" | "template";
+}
+
+export interface MatchResult {
+  query: string;
+  candidates: MatchCandidate[];
+}
+
+export interface PublicProfile {
+  user: UserBrief;
+  bio: string | null;
+  talents: Talent[];
+  completed_count: number;
+  rating_avg: number | null;
+  rating_count: number;
 }
 
 export interface SignupInput {
