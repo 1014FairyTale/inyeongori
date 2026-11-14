@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -62,6 +62,22 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - `discovery_sessions`(자기소개·문답·격려 문구), `talent_candidates`(AI 후보: name/category/evidence/source_quote/confirm_question/description, status pending/accepted/edited/rejected, talent_id), `user_talents`(확정 재능 + `embedding vector(1024)` + embedding_model)
   - 확정(맞아요/수정)한 것만 user_talents에 저장. 후보의 AI 원래 제안은 남기고, 수정한 값은 talent에 저장 (`final_name`으로 응답).
   - 임베딩 실패해도 재능 저장은 진행 (embedding=NULL) → `discovery.backfill_embeddings()`로 채움. embedding_model이 현재 모델과 다르면 다시 임베딩 대상.
+
+- `listings.embedding vector(1024)` + embedding_model: 상품 등록·제목/설명/카테고리 수정 시 계산 (`services/embeddings.embed_listing`)
+- `plans`(goal, kind breakdown/path, summary), `plan_items`(title, description, minutes, category, suggested_tokens, price_basis market/ai/user, similar_count, linked_listing_id, ai_generated, edited)
+
+## 가격 제안 (D4-1, `services/pricing.py`)
+- 활동 텍스트 임베딩 → 내 상품 제외, 활성 상품 중 코사인 유사도 ≥ 기준(`SIMILARITY_THRESHOLD[모델]`) 상위 5개
+- 3개 이상이면 가격 중앙값(market), 아니면 AI 추정값(ai), 그것도 없으면 카테고리/전체 중앙값 → 30
+- 가장 비슷한 상품은 `linked_listing_id`로 연결해 "○○님에게 요청" 버튼으로 보여 줌
+
+## 합의 도우미 (`services/agreement_helper.py`)
+- 저장하지 않는 도우미 API: `POST /ai/agreements/draft {listing_id, raw_request, answers, previous_terms}`
+- 프롬프트는 "추측 금지" — 수정 횟수·분량은 말하지 않았으면 null + 질문 (실측에서 '수정 1회'를 지어내던 문제 수정)
+- 서버가 답변을 조건에 직접 합치고(숫자 파싱), previous_terms로 이전에 정한 조건을 유지 (AI가 매번 다르게 빠뜨리는 문제 방지)
+
+## 서버 시작 시
+- `warm_up_embeddings()`를 백그라운드 스레드로 실행: 임베딩 모델 미리 로드 + 임베딩이 없거나 모델이 다른 재능·상품 다시 계산. 실패해도 서버는 뜬다.
 
 ## AI 모듈 규칙
 - 호출 흐름: `ai/structured.generate(feature, user_text, PydanticSchema)` → provider.generate_json → `model_validate_json` → 실패 시 1회 재시도 → `AIError` → API는 502 `AI_FAILED`.
