@@ -1,0 +1,5 @@
+# Docker(Linux) 안에서 쓰는 파일이 CRLF로 바뀌지 않도록 줄바꿈을 LF로 고정해요
+* text=auto eol=lf
+*.ico binary
+*.png binary
+*.jpg binary
