@@ -97,6 +97,13 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - AI 실패 시 후기만 저장, `POST /exchanges/{id}/review/analyze`로 재시도 (이미 분석됐으면 그대로 반환 → 중복 지급 없음)
 - 하루 기준은 한국 시간(UTC+9 고정 오프셋, slim 이미지에 tzdata가 없어서)
 
+## 거래 채팅 (`services/chat.py`, `routers/chat.py`)
+- `exchange_messages`(exchange_id, sender_id, kind user/system, body) + `exchanges.requester_last_read_id / provider_last_read_id`
+- 상태: open(accepted·cancel_requested·completed) / readonly(수락 후 cancelled) / closed(그 외)
+- `GET /exchanges/{id}/messages?after_id=` (가져온 데까지 읽음 처리), `POST .../messages`, `GET /exchanges/unread`
+- ⚠️ chat 라우터는 exchanges 라우터보다 먼저 include (`/exchanges/unread`가 `/exchanges/{id}`에 걸리지 않게)
+- 상태 안내는 `exchange_flow.post_system()` — 상태를 바꾸는 함수에서 같은 트랜잭션으로 남긴다
+
 ## 임베딩 기준값 (`EMBEDDING_THRESHOLDS`)
 - 모델별 price / match / relative / strong. 모델을 바꾸거나 추가하면 반드시 실측해서 넣는다 (관련·무관 쌍 유사도 분포).
 - 배포는 `EMBEDDING_PROVIDER=gemini` + `gemini-embedding-001`(1024), 로컬은 bge-m3. 모델이 바뀌면 서버 시작 시 backfill이 다시 임베딩한다.
