@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 ✅ · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -81,12 +81,20 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 후보 필터: 유사도 ≥ (기준 - MATCH_MIN_SIMILARITY_MARGIN), 그리고 ≥ (1등 - MATCH_RELATIVE_CUTOFF)
 - 점수 = 0.7×유사도 + 0.2×베이지안 평점/5 + 0.1×log 활동 → 상위 N
 - 이유: 상위 N명을 LLM 1회(`match_reason`)로 생성, AI가 relevant=false로 표시한 후보는 제외, 실패 시 템플릿
-- `provider_stats()`의 평점은 7단계에서 reviews로 채운다 (지금은 ImportError로 건너뜀 → 7단계에서 직접 호출로 바꿀 것)
+- `provider_stats()`: 완료 횟수 + `reviews.rating_stats()` 평점
 - 공개 프로필 `GET /users/{id}`
 
 ## 목표 경로 (`plans.kind = path`)
 - 부탁 쪼개기와 같은 테이블·가격 로직 재사용, 단계마다 `why`(왜 필요한지) 추가
 - 각 단계: 가장 비슷한 상품 연결("○○님에게 요청") + "맞는 사람 찾기"(/match?q=단계)
+
+## 후기·보너스 (`services/reviews.py`, `services/bonus.py`)
+- `reviews`(exchange_id unique, rating 1~5, good_text, bad_text), `review_analyses`(contribution_score, summary, reasons, flags, eligible, base_bonus, final_bonus, adjustments)
+- 완료된 거래의 요청자만, 거래당 1회. 저장 → AI 분석(`review_analysis`) → `bonus.decide()` 규칙 → `bonus.pay()` (pool → 제공자, `review_bonus:{exchange_id}`)
+- AI는 점수·근거만, 금액은 규칙(D5-A). 모든 계산 단계를 adjustments에 기록.
+- 하루 상한 동시성: 제공자 available 계정을 먼저 FOR UPDATE → 같은 제공자 보너스 계산이 줄을 섬. 풀 계정도 FOR UPDATE로 읽음.
+- AI 실패 시 후기만 저장, `POST /exchanges/{id}/review/analyze`로 재시도 (이미 분석됐으면 그대로 반환 → 중복 지급 없음)
+- 하루 기준은 한국 시간(UTC+9 고정 오프셋, slim 이미지에 tzdata가 없어서)
 
 ## 서버 시작 시
 - `warm_up_embeddings()`를 백그라운드 스레드로 실행: 임베딩 모델 미리 로드 + 임베딩이 없거나 모델이 다른 재능·상품 다시 계산. 실패해도 서버는 뜬다.
