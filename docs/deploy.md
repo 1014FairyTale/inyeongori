@@ -46,7 +46,9 @@ Railway와 Vercel은 GitHub 저장소에서 코드를 가져가요.
    | `INSTALL_EMBEDDINGS` | `false` (빌드 인자: PyTorch를 설치하지 않아요) |
    | `SEED_PASSWORD` | 데모 계정 비밀번호 (공개 배포라면 기본값 말고 새로 정하세요) |
 
-4. **Settings → Networking → Generate Domain**으로 주소를 만들어요 (예: `https://inyeongori-backend.up.railway.app`).
+   - 저장소가 목록에 없으면 **Configure GitHub App**에서 이 저장소 접근을 허용하고 Refresh 해요.
+   - `PORT` = `8000`도 넣어 두면 4번 도메인 포트와 헷갈리지 않아요.
+4. **Settings → Networking → Generate Domain**으로 주소를 만들어요 (포트 `8000`, 예: `https://inyeongori-production.up.railway.app`).
 5. 배포가 끝나면 `https://<백엔드 주소>/api/v1/health` 가 `{"status":"ok", ...}` 를 돌려주는지 확인해요.
 6. 시드 데이터 넣기: Variables에 `SEED_IF_EMPTY` = `true`를 추가하면, 서버가 켜질 때 **DB에 사용자가 없을 때만** 데모 시드를 넣어요 (약 30초, 백그라운드).
    - 이미 사용자가 있으면 아무것도 하지 않아요. 처음부터 다시 넣고 싶으면 CLI(`railway run python -m seed.seed --reset --yes`)를 써요.
@@ -57,6 +59,13 @@ Railway와 Vercel은 GitHub 저장소에서 코드를 가져가요.
 2. **Root Directory**: `frontend` (Framework는 Next.js로 자동 인식)
 3. **Environment Variables**: `NEXT_PUBLIC_API_BASE_URL` = `https://<백엔드 주소>/api/v1`
 4. Deploy → 나온 주소(예: `https://inyeongori.vercel.app`)를 Railway 백엔드의 `CORS_ORIGINS`에 넣고 백엔드를 다시 배포해요.
+
+## 실제 배포 기록 (2026-11-14)
+- 프론트: https://inyeongori.vercel.app
+- 백엔드: https://inyeongori-production.up.railway.app (`/api/v1/health`)
+- DB 서비스 이름이 `pgvector`라서 `DATABASE_URL=${{pgvector.DATABASE_URL}}`
+- 변수 원본은 로컬 `.env.railway`(git 제외)에 있어요. 운영 데모 비밀번호는 그 파일의 `SEED_PASSWORD`.
+- CORS 변경은 재배포 후 1~2분 뒤에 반영됐어요.
 
 ## 5. 확인
 - Vercel 주소 접속 → 가입 → 100토큰 → "AI가 내 재능 찾아 주기"
