@@ -11,7 +11,7 @@ AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
 ## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 · 4. 숨은 재능 발굴 · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
+1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
@@ -51,6 +51,18 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - `token_accounts`: 사용자당 `available`/`escrow`, 시스템은 `system_issuance`(음수 허용 — 발행)/`system_bonus_pool`. `balance >= 0` CHECK.
 - `ledger_transfers`: from→to, amount>0, entry_type(system_funding/signup_bonus/escrow_hold/payout/refund/review_bonus/cert_bonus), exchange_id, idempotency_key(unique)
 - 불변식: 모든 계정 balance 합 = 0, 각 계정 balance = 원장 재계산 값
+- `listings`: provider_id, title, description, category(`LISTING_CATEGORIES`), price_tokens(1~500, 가격 = 시간과 무관), est_minutes(참고용), status(active/paused)
+- `exchanges`: listing_id, requester_id, provider_id, price_tokens(요청 시점 스냅샷), status, requester_done_at/provider_done_at, cancel_requested_by, cancelled_by
+  - 상태 머신은 `app/services/exchange_flow.py` (상단 주석에 흐름도). 상태 변경 전 거래 행 `FOR UPDATE`.
+  - requested →(양측이 현재 합의서에 동의)→ accepted[보류 escrow:{id}] →(양측 완료)→ completed[지급 payout:{id}]
+  - 수락 후 제공자 취소 = 즉시 환불(refund:{id}), 요청자 취소 = cancel_requested → 제공자 승인 시 환불 / 거절 시 accepted
+- `agreements`: exchange_id, version, proposed_by, terms(JSONB: request_text/scope/quantity/revisions/duration_minutes/notes), ai_generated, requester_agreed_at, provider_agreed_at
+  - 조건 수정 = 새 version, 제안자만 동의한 상태로 시작. 수락 후에는 수정 불가.
+
+## 프론트 메모
+- Next 16 + Cache Components: `useParams`/`usePathname`/`useSearchParams`를 쓰는 클라이언트 컴포넌트는 `<Suspense>`로 감싸야 빌드된다.
+- 로컬에서 `npm run build`를 하면 `frontend/.next`가 생겨 컨테이너 개발 서버와 섞인다. 빌드 확인 후 `rm -rf frontend/.next` 하고 `docker compose restart frontend`.
+- 로그인 복원 실패 시 401일 때만 토큰을 지운다 (서버 재시작 중 로그아웃 방지).
 
 ## 결정 사항
 README.md의 "결정 사항" 섹션이 기준. 바뀌면 둘 다 갱신.
