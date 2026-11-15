@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui";
+import { GettingStarted } from "@/components/GettingStarted";
 
 const STEPS = [
   { emoji: "💬", title: "경험을 편하게 적어요", body: "동아리 총무, 과외, 행사 준비… 사소해 보여도 괜찮아요." },
@@ -16,6 +17,7 @@ export default function Home() {
 
   return (
     <div className="space-y-10">
+      <GettingStarted />
       <section className="space-y-5 pt-6 text-center">
         <p className="text-sm font-semibold text-brand">대학생 재능 교류 플랫폼</p>
         <h1 className="text-3xl font-extrabold leading-snug sm:text-4xl">

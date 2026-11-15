@@ -101,7 +101,10 @@ export interface Me {
   user: User;
   wallet: WalletBrief;
   review_status: { blocked: boolean; due: DueReview[] };
+  getting_started: { tutorial_seen: boolean; steps: { key: StepKey; done: boolean }[] };
 }
+
+export type StepKey = "discover" | "list" | "request" | "chat" | "review";
 
 export interface TokenResponse {
   access_token: string;

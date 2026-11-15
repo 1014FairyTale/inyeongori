@@ -4,6 +4,19 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { TokenAmount } from "@/components/TokenAmount";
 
+function GuideLink() {
+  return (
+    <Link
+      href="/guide?next=/"
+      aria-label="이용 가이드"
+      title="이용 가이드"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-xs font-bold text-muted hover:border-brand hover:text-brand"
+    >
+      ?
+    </Link>
+  );
+}
+
 export function Header() {
   const { me, loading, logout } = useAuth();
 
@@ -15,6 +28,7 @@ export function Header() {
         </Link>
         {loading ? null : me ? (
           <div className="flex items-center gap-3 text-sm">
+            <GuideLink />
             <TokenAmount amount={me.wallet.available} />
             <Link href="/me" className="text-muted">
               {me.user.nickname}님
@@ -25,6 +39,7 @@ export function Header() {
           </div>
         ) : (
           <div className="flex items-center gap-3 text-sm">
+            <GuideLink />
             <Link href="/login" className="text-muted">
               로그인
             </Link>

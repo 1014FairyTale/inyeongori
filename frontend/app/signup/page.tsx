@@ -34,7 +34,7 @@ function SignupForm() {
         school: form.school || undefined,
         major: form.major || undefined,
       });
-      router.push(next);
+      router.push(`/guide?next=${encodeURIComponent(next)}`); // 처음 가입하면 이용 가이드부터 보여 줘요
     } catch (err) {
       if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
         const fields = (err.details.fields as { field: string }[] | undefined) ?? [];
