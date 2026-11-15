@@ -94,6 +94,12 @@ class ReviewAnalysisAI(BaseModel):
         max_length=4,
         description="주의할 점 (예: 구체적인 내용이 없음, 별점과 내용이 맞지 않음, 거래와 관련 없는 내용). 없으면 빈 배열",
     )
+    review_quality: int = Field(
+        ge=0,
+        le=100,
+        description="후기 자체의 성의 점수 0~100. 제공자 평가(만족·불만)와 상관없이, 다른 학생에게 도움이 될 만큼 구체적이고 성실하게 썼는지",
+    )
+    review_quality_reason: str = Field(max_length=120, description="후기 성의 점수의 근거 한 문장 (존댓말)")
 
 
 # ---- 매칭 추천 이유 ----
