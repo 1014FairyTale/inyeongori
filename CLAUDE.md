@@ -97,6 +97,11 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - AI 실패 시 후기만 저장, `POST /exchanges/{id}/review/analyze`로 재시도 (이미 분석됐으면 그대로 반환 → 중복 지급 없음)
 - 하루 기준은 한국 시간(UTC+9 고정 오프셋, slim 이미지에 tzdata가 없어서)
 
+## 처음 이용 가이드
+- `/guide` 슬라이드(내용은 `frontend/app/guide/page.tsx`의 SLIDES). 기능·정책(토큰, 10% 환급, 7일 기한 등)이 바뀌면 슬라이드 문구도 같이 고칠 것
+- 가입 후 `/guide?next=...`로 이동, 끝/건너뛰기 시 `POST /auth/me/tutorial` → `users.tutorial_seen_at`
+- 첫 걸음 체크리스트: `services/getting_started.py` (MeOut.getting_started), 프론트 `components/GettingStarted.tsx`
+
 ## 후기 기한·환급 (`services/review_policy.py`, `bonus.decide_reviewer_reward`)
 - 요청자는 완료 후 `REVIEW_DEADLINE_DAYS`(7일) 안에 후기. 기한 안 + AI `review_quality` ≥ 70 + 30자 이상 → 거래가 10% 환급 (`review_reward:{exchange_id}`, 보너스 풀)
 - 기한을 넘긴 미작성 후기가 있으면 `CurrentUser` 의존성이 403 `SERVICE_BLOCKED`. 막혀도 열려 있어야 하는 엔드포인트는 `LoggedInUser` 사용 (auth/me, 거래 상세, 후기 쓰기·재분석·조회)
