@@ -97,6 +97,13 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - AI 실패 시 후기만 저장, `POST /exchanges/{id}/review/analyze`로 재시도 (이미 분석됐으면 그대로 반환 → 중복 지급 없음)
 - 하루 기준은 한국 시간(UTC+9 고정 오프셋, slim 이미지에 tzdata가 없어서)
 
+## 후기 기한·환급 (`services/review_policy.py`, `bonus.decide_reviewer_reward`)
+- 요청자는 완료 후 `REVIEW_DEADLINE_DAYS`(7일) 안에 후기. 기한 안 + AI `review_quality` ≥ 70 + 30자 이상 → 거래가 10% 환급 (`review_reward:{exchange_id}`, 보너스 풀)
+- 기한을 넘긴 미작성 후기가 있으면 `CurrentUser` 의존성이 403 `SERVICE_BLOCKED`. 막혀도 열려 있어야 하는 엔드포인트는 `LoggedInUser` 사용 (auth/me, 거래 상세, 후기 쓰기·재분석·조회)
+- 새 엔드포인트를 만들 때: 기본은 `CurrentUser`. 막힌 사람도 써야 하면 `LoggedInUser` (README 결정 사항과 맞출 것)
+- 막힌 사용자의 상품·재능은 `review_policy.blocked_user_ids()`로 마켓·매칭에서 제외, 요청도 거부
+- 프론트: `ReviewGate`(layout)가 마감 배너 / 차단 화면, API가 SERVICE_BLOCKED를 주면 `REFRESH_ME_EVENT`로 내 정보 갱신
+
 ## 거래 채팅 (`services/chat.py`, `routers/chat.py`)
 - `exchange_messages`(exchange_id, sender_id, kind user/system, body) + `exchanges.requester_last_read_id / provider_last_read_id`
 - 상태: open(accepted·cancel_requested·completed) / readonly(수락 후 cancelled) / closed(그 외)
