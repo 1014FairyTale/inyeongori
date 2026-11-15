@@ -39,3 +39,8 @@ class ReviewAnalysis(TimestampMixin, Base):
     base_bonus: Mapped[int] = mapped_column(Integer)  # 상한·감액 전
     final_bonus: Mapped[int] = mapped_column(Integer)  # 실제 지급
     adjustments: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)  # 적용된 규칙 기록
+    # 후기 작성자(요청자) 쪽: 후기 성의 점수와 10% 환급
+    review_quality: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    review_quality_reason: Mapped[str | None] = mapped_column(Text)
+    reviewer_reward: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    reviewer_reward_note: Mapped[str | None] = mapped_column(Text)

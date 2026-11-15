@@ -17,7 +17,7 @@ from ai.structured import generate
 from app.config import get_settings
 from app.errors import AppError
 from app.models import Agreement, Exchange, ExchangeStatus, Listing, Review, ReviewAnalysis, User
-from app.services import bonus, exchange_flow
+from app.services import bonus, exchange_flow, review_policy
 
 log = logging.getLogger("reviews")
 
@@ -93,6 +93,9 @@ def analyze(db: Session, review: Review) -> ReviewAnalysis | None:
 
     bonus.lock_provider_account(db, ex.provider_id)
     decision = bonus.decide(db, ex, review, ai.contribution_score)
+    reward, reward_note = bonus.decide_reviewer_reward(
+        db, ex, review, ai.review_quality, on_time=review_policy.written_on_time(ex, review), reserved=decision.final
+    )
     s = get_settings()
     analysis = ReviewAnalysis(
         review_id=review.id,
@@ -106,10 +109,15 @@ def analyze(db: Session, review: Review) -> ReviewAnalysis | None:
         base_bonus=decision.base,
         final_bonus=decision.final,
         adjustments=decision.adjustments,
+        review_quality=ai.review_quality,
+        review_quality_reason=ai.review_quality_reason,
+        reviewer_reward=reward,
+        reviewer_reward_note=reward_note,
     )
     db.add(analysis)
     db.flush()
     bonus.pay(db, ex, decision.final)
+    bonus.pay_reviewer_reward(db, ex, reward)
     return analysis
 
 

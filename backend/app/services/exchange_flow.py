@@ -28,7 +28,7 @@ from app.models import (
     User,
 )
 from app.schemas.market import AgreementTerms, ExchangeAction
-from app.services import ledger
+from app.services import ledger, review_policy
 
 Role = Literal["requester", "provider"]
 
@@ -112,6 +112,10 @@ def create_request(
         raise AppError("LISTING_INACTIVE", "지금은 요청을 받지 않는 상품이에요", 409)
     if listing.provider_id == requester.id:
         raise AppError("SELF_REQUEST", "내 상품에는 요청할 수 없어요", 400)
+    provider = db.get(User, listing.provider_id)
+    if provider is not None and review_policy.is_blocked(db, provider):
+        # 밀린 후기 때문에 이용이 막힌 제공자는 새 요청을 받을 수 없어요
+        raise AppError("LISTING_INACTIVE", "지금은 요청을 받지 않는 재능이에요", 409)
 
     # 요청 단계에서는 잠그지 않고 안내만 해요. 실제 보류는 수락 시점에 잠금과 함께 다시 확인해요.
     wallet = ledger.wallet_summary(db, requester.id)

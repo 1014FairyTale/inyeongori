@@ -35,6 +35,16 @@ BONUS_MAX_TOKENS_PER_PROVIDER_PER_DAY = 30
 REPEAT_PAIR_WINDOW_DAYS = 30
 REPEAT_PAIR_MULTIPLIERS = [1.0, 0.5, 0.0]  # 같은 두 사람의 1번째, 2번째, 3번째 이후 거래
 
+# ---- 후기 작성자 보상·기한 (기획자 결정, 2026-11-15) ----
+# 요청자가 완료 후 기한 안에 '성의 있는' 후기를 쓰면 거래가의 10%를 보너스 풀에서 돌려받아요.
+# 성의 = AI 후기 성의 점수(구체성·거래 관련성·별점과 내용의 일치, 만족도와는 별개) + 최소 글자 수
+REVIEW_REWARD_RATE = 0.10
+REVIEW_REWARD_MIN_TOKENS = 1
+REVIEW_REWARD_MIN_QUALITY = 70
+REVIEW_REWARD_MIN_CHARS = 30
+# 완료 후 이 기간 안에 후기를 안 쓰면 서비스 이용이 막혀요 (후기를 쓰면 풀림, 늦은 후기는 10% 없음)
+REVIEW_DEADLINE_DAYS = 7
+
 # ---- 매칭 (D3, 6단계에서 사용) ----
 MATCH_TOP_N = 5
 MATCH_WEIGHT_SIMILARITY = 0.7

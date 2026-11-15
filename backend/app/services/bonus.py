@@ -27,6 +27,11 @@ from app.core.constants import (
     BONUS_TIERS,
     REPEAT_PAIR_MULTIPLIERS,
     REPEAT_PAIR_WINDOW_DAYS,
+    REVIEW_DEADLINE_DAYS,
+    REVIEW_REWARD_MIN_CHARS,
+    REVIEW_REWARD_MIN_QUALITY,
+    REVIEW_REWARD_MIN_TOKENS,
+    REVIEW_REWARD_RATE,
 )
 from app.models import AccountKind, EntryType, Exchange, ExchangeStatus, Review, ReviewAnalysis, TokenAccount
 from app.services import ledger
@@ -130,6 +135,52 @@ def decide(db: Session, ex: Exchange, review: Review, score: int) -> BonusDecisi
             amount = pool.balance
 
     return BonusDecision(True, base, amount, adj)
+
+
+def _pool_for_update(db: Session) -> TokenAccount:
+    system = ledger.get_system_user(db)
+    pool = db.scalar(
+        select(TokenAccount)
+        .where(TokenAccount.owner_user_id == system.id, TokenAccount.kind == AccountKind.SYSTEM_BONUS_POOL)
+        .with_for_update()
+    )
+    assert pool is not None
+    return pool
+
+
+def decide_reviewer_reward(
+    db: Session, ex: Exchange, review: Review, quality: int, *, on_time: bool, reserved: int = 0
+) -> tuple[int, str]:
+    """후기 작성자(요청자) 환급: 기한 안 + AI 성의 점수 70 이상 + 30자 이상 → 거래가의 10% (보너스 풀에서).
+    reserved: 같은 트랜잭션에서 제공자 보너스로 이미 쓰기로 한 풀 토큰. 반환: (금액, 설명)"""
+    text_len = len((review.good_text or "").strip()) + len((review.bad_text or "").strip())
+    if not on_time:
+        return 0, f"완료 후 {REVIEW_DEADLINE_DAYS}일이 지나서 쓴 후기라 환급 대상이 아니에요"
+    if quality < REVIEW_REWARD_MIN_QUALITY:
+        return 0, f"후기 성의 점수가 {REVIEW_REWARD_MIN_QUALITY}점 미만이에요 ({quality}점)"
+    if text_len < REVIEW_REWARD_MIN_CHARS:
+        return 0, f"후기가 {REVIEW_REWARD_MIN_CHARS}자 미만이에요 ({text_len}자)"
+    amount = max(REVIEW_REWARD_MIN_TOKENS, round(ex.price_tokens * REVIEW_REWARD_RATE))
+    left = max(0, _pool_for_update(db).balance - reserved)
+    if amount > left:
+        return left, f"보너스 풀 잔액이 부족해서 {left}토큰만 돌려드렸어요"
+    return amount, f"성의 있는 후기 덕분에 거래가 {ex.price_tokens}토큰의 {int(REVIEW_REWARD_RATE * 100)}%를 돌려드렸어요"
+
+
+def pay_reviewer_reward(db: Session, ex: Exchange, amount: int) -> None:
+    if amount <= 0:
+        return
+    system = ledger.get_system_user(db)
+    ledger.transfer(
+        db,
+        from_account_id=ledger.get_account(db, system.id, AccountKind.SYSTEM_BONUS_POOL).id,
+        to_account_id=ledger.get_account(db, ex.requester_id, AccountKind.AVAILABLE).id,
+        amount=amount,
+        entry_type=EntryType.REVIEW_REWARD,
+        idempotency_key=f"review_reward:{ex.id}",
+        exchange_id=ex.id,
+        memo="성의 있는 후기 환급",
+    )
 
 
 def lock_provider_account(db: Session, provider_id: int) -> None:

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
@@ -48,9 +50,23 @@ class UserOut(BaseModel):
     bio: str | None
 
 
+class DueReviewOut(BaseModel):
+    exchange_id: int
+    listing_title: str | None
+    provider_nickname: str
+    due_at: datetime
+    overdue: bool
+
+
+class ReviewStatus(BaseModel):
+    blocked: bool  # 기한을 넘긴 후기가 있어서 이용이 막혔는지
+    due: list[DueReviewOut]  # 써야 하는 후기 (기한이 가까운 순)
+
+
 class MeOut(BaseModel):
     user: UserOut
     wallet: WalletBrief
+    review_status: ReviewStatus = ReviewStatus(blocked=False, due=[])
 
 
 class TokenOut(BaseModel):

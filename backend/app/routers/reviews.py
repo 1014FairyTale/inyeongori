@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from app.deps import DB, CurrentUser
+from app.deps import DB, LoggedInUser
 from app.errors import AppError
 from app.models import Exchange, Review
 from app.schemas.review import AnalysisOut, PublicReview, ReviewCreate, ReviewOut, ReviewOutBase
@@ -19,7 +19,7 @@ def _out(db: DB, review: Review, *, failed: bool = False) -> ReviewOut:
 
 
 @router.post("/exchanges/{exchange_id}/review", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
-def create_review(exchange_id: int, req: ReviewCreate, user: CurrentUser, db: DB) -> ReviewOut:
+def create_review(exchange_id: int, req: ReviewCreate, user: LoggedInUser, db: DB) -> ReviewOut:
     """후기 저장 → AI 분석 → 조건을 넘으면 제공자에게 보너스. AI가 실패해도 후기는 저장돼요."""
     review = reviews.create_review(db, user, exchange_id, req.rating, req.good_text, req.bad_text)
     analysis = reviews.analyze(db, review)
@@ -28,7 +28,7 @@ def create_review(exchange_id: int, req: ReviewCreate, user: CurrentUser, db: DB
 
 
 @router.post("/exchanges/{exchange_id}/review/analyze", response_model=ReviewOut)
-def retry_analysis(exchange_id: int, user: CurrentUser, db: DB) -> ReviewOut:
+def retry_analysis(exchange_id: int, user: LoggedInUser, db: DB) -> ReviewOut:
     review = reviews.get_review(db, exchange_id)
     if review is None or review.reviewer_id != user.id:
         raise AppError("NOT_FOUND", "후기를 찾을 수 없어요", 404)
@@ -38,7 +38,7 @@ def retry_analysis(exchange_id: int, user: CurrentUser, db: DB) -> ReviewOut:
 
 
 @router.get("/exchanges/{exchange_id}/review", response_model=ReviewOut | None)
-def get_review(exchange_id: int, user: CurrentUser, db: DB) -> ReviewOut | None:
+def get_review(exchange_id: int, user: LoggedInUser, db: DB) -> ReviewOut | None:
     ex = db.get(Exchange, exchange_id)
     if ex is None:
         raise AppError("NOT_FOUND", "거래를 찾을 수 없어요", 404)

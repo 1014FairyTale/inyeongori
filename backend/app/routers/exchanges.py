@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.deps import DB, CurrentUser
+from app.deps import DB, CurrentUser, LoggedInUser
 from app.errors import AppError
 from app.models import Exchange, ExchangeStatus, Listing, Review, User
 from app.schemas.market import (
@@ -17,7 +17,7 @@ from app.schemas.market import (
     ProposeTerms,
     UserBrief,
 )
-from app.services import chat
+from app.services import chat, review_policy
 from app.services import exchange_flow as flow
 
 router = APIRouter(prefix="/exchanges", tags=["exchanges"])
@@ -65,6 +65,7 @@ def build_out(db: Session, ex: Exchange, user: User) -> ExchangeOut:
         has_review=has_review,
         chat_state=chat.chat_state(ex),
         unread_count=chat.unread_counts(db, user, [ex])[ex.id],
+        review_due_at=review_policy.due_at(ex) if ex.status == ExchangeStatus.COMPLETED else None,
         created_at=ex.created_at,
         accepted_at=ex.accepted_at,
         completed_at=ex.completed_at,
@@ -129,7 +130,7 @@ def list_exchanges(
 
 
 @router.get("/{exchange_id}", response_model=ExchangeOut)
-def get_exchange(exchange_id: int, user: CurrentUser, db: DB) -> ExchangeOut:
+def get_exchange(exchange_id: int, user: LoggedInUser, db: DB) -> ExchangeOut:
     ex = db.get(Exchange, exchange_id)
     if ex is None:
         raise AppError("NOT_FOUND", "거래를 찾을 수 없어요", 404)

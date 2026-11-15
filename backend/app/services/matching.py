@@ -30,6 +30,7 @@ from app.core.constants import (
 from app.models import Exchange, ExchangeStatus, Listing, ListingStatus, User, UserTalent
 from app.schemas.market import UserBrief
 from app.schemas.match import MatchCandidate, MatchedListing
+from app.services import review_policy
 from app.services.embeddings import embed_text, thresholds
 from app.services.reviews import rating_stats
 
@@ -94,14 +95,24 @@ def _collect(db: Session, vec: list[float], exclude_user_id: int | None) -> dict
     t_stmt = (
         select(UserTalent.user_id, UserTalent.name, t_dist.label("d"))
         .join(User, User.id == UserTalent.user_id)
-        .where(UserTalent.embedding.is_not(None), UserTalent.embedding_model == model, User.is_system.is_(False))
+        .where(
+            UserTalent.embedding.is_not(None),
+            UserTalent.embedding_model == model,
+            User.is_system.is_(False),
+            UserTalent.user_id.not_in(review_policy.blocked_user_ids()),  # 이용이 막힌 사람은 추천하지 않아요
+        )
         .order_by(t_dist)
         .limit(POOL)
     )
     l_dist = Listing.embedding.cosine_distance(vec)
     l_stmt = (
         select(Listing, l_dist.label("d"))
-        .where(Listing.embedding.is_not(None), Listing.embedding_model == model, Listing.status == ListingStatus.ACTIVE)
+        .where(
+            Listing.embedding.is_not(None),
+            Listing.embedding_model == model,
+            Listing.status == ListingStatus.ACTIVE,
+            Listing.provider_id.not_in(review_policy.blocked_user_ids()),
+        )
         .order_by(l_dist)
         .limit(POOL)
     )

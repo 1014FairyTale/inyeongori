@@ -38,7 +38,8 @@ class EntryType(enum.StrEnum):
     ESCROW_HOLD = "escrow_hold"  # 결제 보류
     PAYOUT = "payout"  # 지급
     REFUND = "refund"  # 환불
-    REVIEW_BONUS = "review_bonus"  # 후기 보너스
+    REVIEW_BONUS = "review_bonus"  # 후기 보너스 (제공자)
+    REVIEW_REWARD = "review_reward"  # 성의 있는 후기 환급 (요청자, 거래가의 10%)
     CERT_BONUS = "cert_bonus"  # 인증 보너스 (선택 기능)
 
 

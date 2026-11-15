@@ -9,6 +9,7 @@ from app.deps import DB, CurrentUser
 from app.errors import AppError
 from app.models import Exchange, ExchangeStatus, Listing, ListingStatus, User
 from app.schemas.market import ListingCreate, ListingOut, ListingPage, ListingUpdate, UserBrief
+from app.services import review_policy
 from app.services.embeddings import embed_listing
 
 router = APIRouter(prefix="/listings", tags=["listings"])
@@ -56,6 +57,9 @@ def list_listings(
     size: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> ListingPage:
     stmt = select(Listing, User).join(User, User.id == Listing.provider_id)
+    if not (include_paused and provider_id is not None):
+        # 밀린 후기 때문에 이용이 막힌 사람의 상품은 마켓에서 빼요 (본인 프로필 조회는 예외)
+        stmt = stmt.where(Listing.provider_id.not_in(review_policy.blocked_user_ids()))
     if not (include_paused and provider_id is not None):
         stmt = stmt.where(Listing.status == ListingStatus.ACTIVE)
     if q:

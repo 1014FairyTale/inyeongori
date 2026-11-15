@@ -16,6 +16,7 @@ LABELS = {
     EntryType.PAYOUT: "거래 지급",
     EntryType.REFUND: "거래 환불",
     EntryType.REVIEW_BONUS: "후기 보너스",
+    EntryType.REVIEW_REWARD: "성의 있는 후기 환급",
     EntryType.CERT_BONUS: "인증 보너스",
     EntryType.SYSTEM_FUNDING: "시스템 적립",
 }

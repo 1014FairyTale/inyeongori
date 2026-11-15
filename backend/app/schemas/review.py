@@ -42,6 +42,10 @@ class AnalysisOut(BaseModel):
     base_bonus: int
     final_bonus: int
     adjustments: list[dict[str, Any]]
+    review_quality: int
+    review_quality_reason: str | None
+    reviewer_reward: int
+    reviewer_reward_note: str | None
     created_at: datetime
 
 

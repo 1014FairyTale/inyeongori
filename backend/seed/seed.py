@@ -119,7 +119,9 @@ def _trades(db: Session, users: dict[str, User], listings: dict[str, Listing], l
         exchange_flow.complete(db, provider, ex.id)
         db.commit()
         review = reviews.create_review(db, requester, ex.id, rating, good, bad or None)
-        llm.queue.append({"contribution_score": score, "summary": reasons[0], "reasons": reasons, "flags": []})
+        quality = 85 if len(good) + len(bad or "") >= 30 else 45  # 시드: 구체적인 후기는 성의 점수 높게
+        llm.queue.append({"contribution_score": score, "summary": reasons[0], "reasons": reasons, "flags": [],
+                          "review_quality": quality, "review_quality_reason": "받은 도움을 구체적으로 적었어요." if quality >= 70 else "내용이 짧아 참고하기 어려워요."})
         analysis = reviews.analyze(db, review)
         db.commit()
         bonus = analysis.final_bonus if analysis else 0

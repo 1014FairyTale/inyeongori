@@ -4,20 +4,23 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.constants import REVIEW_DEADLINE_DAYS
 from app.core.security import decode_access_token
 from app.db import get_db
 from app.errors import AppError
 from app.models import User
+from app.services import review_policy
 
 _bearer = HTTPBearer(auto_error=False)
 
 DB = Annotated[Session, Depends(get_db)]
 
 
-def get_current_user(
+def get_logged_in_user(
     db: DB,
     cred: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
 ) -> User:
+    """로그인만 확인해요. 이용이 막힌 사람도 통과 (내 정보, 밀린 후기 쓰기 등에만 사용)."""
     if cred is None:
         raise AppError("UNAUTHORIZED", "로그인이 필요해요", 401)
     user_id = decode_access_token(cred.credentials)
@@ -27,4 +30,19 @@ def get_current_user(
     return user
 
 
+def get_current_user(db: DB, user: Annotated[User, Depends(get_logged_in_user)]) -> User:
+    """로그인 + 이용 제한 확인. 완료 후 7일이 지나도록 후기를 안 쓴 거래가 있으면 막아요."""
+    if review_policy.is_blocked(db, user):
+        overdue = [d.exchange_id for d in review_policy.due_reviews(db, user) if d.overdue]
+        raise AppError(
+            "SERVICE_BLOCKED",
+            f"완료 후 {REVIEW_DEADLINE_DAYS}일이 지난 거래의 후기를 남겨야 인연고리를 다시 이용할 수 있어요",
+            403,
+            {"overdue_exchange_ids": overdue},
+        )
+    return user
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+# 이용이 막혀도 쓸 수 있는 곳: 내 정보, 거래 상세 보기, 후기 쓰기·다시 분석·보기
+LoggedInUser = Annotated[User, Depends(get_logged_in_user)]

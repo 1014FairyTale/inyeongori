@@ -149,6 +149,7 @@ class ExchangeOut(BaseModel):
     has_review: bool = False
     chat_state: Literal["open", "readonly", "closed"] = "closed"
     unread_count: int = 0
+    review_due_at: datetime | None = None  # 요청자가 후기를 써야 하는 기한 (완료 + 7일)
     created_at: datetime
     accepted_at: datetime | None
     completed_at: datetime | None
