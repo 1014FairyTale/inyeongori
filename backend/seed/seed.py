@@ -10,6 +10,7 @@
 """
 
 import argparse
+from datetime import UTC, datetime
 import json
 import os
 import sys
@@ -66,6 +67,7 @@ def reset(db: Session) -> None:
 def make_user(db: Session, password: str, nick: str, handle: str, school: str, major: str, bio: str) -> User:
     user = auth.signup(db, SignupRequest(email=email(handle), password=password, nickname=nick, school=school, major=major))
     user.bio = bio
+    user.tutorial_seen_at = datetime.now(UTC)  # 시드 계정은 이용 가이드를 이미 본 것으로 (시연 중 가이드가 뜨지 않게)
     return user
 
 

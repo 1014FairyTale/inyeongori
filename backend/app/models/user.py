@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, String, Text
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
@@ -16,3 +18,4 @@ class User(TimestampMixin, Base):
     bio: Mapped[str | None] = mapped_column(Text)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    tutorial_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # 처음 이용 가이드를 본 시각

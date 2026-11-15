@@ -63,10 +63,21 @@ class ReviewStatus(BaseModel):
     due: list[DueReviewOut]  # 써야 하는 후기 (기한이 가까운 순)
 
 
+class StepOut(BaseModel):
+    key: str  # discover / list / request / chat / review
+    done: bool
+
+
+class GettingStarted(BaseModel):
+    tutorial_seen: bool  # 가입 후 이용 가이드를 봤는지 (안 봤으면 가이드를 띄워요)
+    steps: list[StepOut]  # 첫 걸음 체크리스트
+
+
 class MeOut(BaseModel):
     user: UserOut
     wallet: WalletBrief
     review_status: ReviewStatus = ReviewStatus(blocked=False, due=[])
+    getting_started: GettingStarted = GettingStarted(tutorial_seen=True, steps=[])
 
 
 class TokenOut(BaseModel):
