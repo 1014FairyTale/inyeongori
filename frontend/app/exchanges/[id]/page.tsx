@@ -77,7 +77,8 @@ function TermsView({ terms }: { terms: AgreementTerms }) {
 
 function ExchangeDetail() {
   const { id } = useParams<{ id: string }>();
-  const { refresh } = useAuth();
+  const { me, refresh } = useAuth();
+  const blocked = me?.review_status.blocked ?? false; // 밀린 후기 때문에 막힌 동안에는 채팅을 숨겨요
   const [ex, setEx] = useState<Exchange | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -186,7 +187,7 @@ function ExchangeDetail() {
 
       <div className="rounded-xl bg-brand-soft px-4 py-3 text-sm">{hint}</div>
 
-      {ex.chat_state !== "closed" && (
+      {ex.chat_state !== "closed" && !blocked && (
         <a href="#chat" className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm">
           <span>
             💬 <b>{counterpart.nickname}</b>님과 대화하기
@@ -276,7 +277,7 @@ function ExchangeDetail() {
         </div>
       )}
 
-      {ex.chat_state !== "closed" && (
+      {ex.chat_state !== "closed" && !blocked && (
         <ChatPanel
           key={ex.id}
           exchangeId={ex.id}

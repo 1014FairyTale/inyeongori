@@ -23,6 +23,18 @@ export function formatDate(iso: string): string {
   return d.toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+/** 마감까지 남은 날 (오늘 마감 = 0, 지났으면 음수) */
+export function daysLeft(iso: string): number {
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+}
+
+export function dueLabel(iso: string): string {
+  const d = daysLeft(iso);
+  if (d < 0) return "기한 지남";
+  if (d === 0) return "오늘 마감";
+  return `D-${d}`;
+}
+
 export function signed(n: number): string {
   return n > 0 ? `+${n.toLocaleString("ko-KR")}` : n.toLocaleString("ko-KR");
 }

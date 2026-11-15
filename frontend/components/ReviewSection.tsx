@@ -2,12 +2,14 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Exchange, type ReviewAnalysis, type ReviewResult } from "@/lib/api";
+import { daysLeft, dueLabel, formatDate } from "@/lib/format";
 import { AiBadge } from "@/components/AiBadge";
 import { AiLoading } from "@/components/AiLoading";
 import { Button, Card, ErrorBox, TextArea } from "@/components/ui";
 
 const LOADING = ["후기를 꼼꼼히 읽고 있어요…", "합의한 조건과 비교하고 있어요…", "기여도를 판단하고 있어요…"];
-const MIN_CHARS = 20; // 보너스 조건 (백엔드 BONUS_MIN_REVIEW_CHARS와 같게)
+const MIN_CHARS = 30; // 후기 환급 조건 (백엔드 REVIEW_REWARD_MIN_CHARS와 같게)
+const REWARD_RATE = 0.1; // 백엔드 REVIEW_REWARD_RATE와 같게
 
 function Stars({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
   return (
@@ -58,6 +60,17 @@ function AnalysisCard({ a, isProvider, providerName }: { a: ReviewAnalysis; isPr
         </p>
       ) : (
         <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted">이번 거래는 보너스 지급 조건에 해당하지 않았어요.</p>
+      )}
+
+      {!isProvider && (
+        <div className={`space-y-1 rounded-xl px-4 py-3 text-sm ${a.reviewer_reward > 0 ? "bg-green-50" : "bg-card"}`}>
+          <p className="font-semibold">
+            📝 후기 성의 점수 {a.review_quality}점
+            {a.reviewer_reward > 0 && <span className="text-green-700"> · {a.reviewer_reward}토큰을 돌려받았어요!</span>}
+          </p>
+          {a.review_quality_reason && <p className="text-muted">{a.review_quality_reason}</p>}
+          {a.reviewer_reward === 0 && a.reviewer_reward_note && <p className="text-xs text-muted">{a.reviewer_reward_note}</p>}
+        </div>
       )}
 
       {a.adjustments.length > 0 && (
@@ -143,12 +156,24 @@ export function ReviewSection({ exchange, onChanged }: { exchange: Exchange; onC
             AI가 후기를 읽고 {exchange.provider.nickname}님의 기여도를 판단해요. 정성스러운 도움이었다면 보너스 토큰이 지급돼요.
           </p>
         </div>
+        {exchange.review_due_at &&
+          (daysLeft(exchange.review_due_at) >= 0 ? (
+            <p className="rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-green-800">
+              🎁 <b>{formatDate(exchange.review_due_at)}</b>까지({dueLabel(exchange.review_due_at)}) 성의 있게 쓰면{" "}
+              <b>{Math.max(1, Math.round(exchange.price_tokens * REWARD_RATE))}토큰</b>(거래 토큰의 10%)을 돌려받아요.
+              좋았던 점·아쉬운 점을 구체적으로 적어 주세요. 불만이어도 괜찮아요!
+            </p>
+          ) : (
+            <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-danger">
+              후기 기한이 지나서 인연고리 이용이 잠시 막혀 있어요. 후기를 쓰면 바로 다시 이용할 수 있어요. (기한이 지나 10% 환급은 없어요)
+            </p>
+          ))}
         <form onSubmit={submit} className="space-y-4" noValidate>
           <Stars value={rating} onChange={setRating} />
           <TextArea label="좋았던 점" placeholder="예: 장표마다 왜 고쳐야 하는지 이유까지 설명해 줬어요" value={good} onChange={(e) => setGood(e.target.value)} maxLength={1000} />
           <TextArea label="아쉬운 점 (선택)" placeholder="예: 시간이 조금 짧았어요" value={bad} onChange={(e) => setBad(e.target.value)} maxLength={1000} className="min-h-16" />
           <p className={`text-xs ${chars >= MIN_CHARS ? "text-green-700" : "text-muted"}`}>
-            {chars >= MIN_CHARS ? "✅ 구체적으로 적어 주셔서 고마워요" : `구체적으로 ${MIN_CHARS}자 이상 적으면 보너스 판단에 도움이 돼요 (${chars}자)`}
+            {chars >= MIN_CHARS ? "✅ 구체적으로 적어 주셔서 고마워요" : `환급을 받으려면 ${MIN_CHARS}자 이상 구체적으로 적어 주세요 (${chars}자)`}
           </p>
           {error && <ErrorBox message={error} />}
           <Button type="submit" disabled={busy}>

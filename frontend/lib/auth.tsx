@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError, getToken, setToken, type Me, type SignupInput, type TokenResponse } from "@/lib/api";
+import { api, ApiError, REFRESH_ME_EVENT, getToken, setToken, type Me, type SignupInput, type TokenResponse } from "@/lib/api";
 
 interface AuthState {
   me: Me | null;
@@ -55,6 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // 서버가 '이용 제한'을 알려 오면 내 정보를 새로 불러요
+  useEffect(() => {
+    const onRefresh = () => void refresh();
+    window.addEventListener(REFRESH_ME_EVENT, onRefresh);
+    return () => window.removeEventListener(REFRESH_ME_EVENT, onRefresh);
+  }, [refresh]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api<TokenResponse>("/auth/login", { method: "POST", json: { email, password } });

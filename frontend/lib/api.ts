@@ -3,6 +3,7 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
 const TOKEN_KEY = "inyeongori.token";
+export const REFRESH_ME_EVENT = "inyeongori:refresh-me";
 
 export class ApiError extends Error {
   constructor(
@@ -58,6 +59,10 @@ export async function api<T>(path: string, init: RequestInit & { json?: unknown 
   const body: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = (body as ErrorBody).error ?? {};
+    if (err.code === "SERVICE_BLOCKED" && typeof window !== "undefined") {
+      // 밀린 후기 때문에 막혔어요 → 내 정보를 새로 불러서 '후기 쓰기' 화면을 보여 줘요
+      window.dispatchEvent(new Event(REFRESH_ME_EVENT));
+    }
     throw new ApiError(
       err.code ?? "HTTP_ERROR",
       err.message ?? "요청을 처리하지 못했어요",
@@ -84,9 +89,18 @@ export interface WalletBrief {
   escrow: number;
 }
 
+export interface DueReview {
+  exchange_id: number;
+  listing_title: string | null;
+  provider_nickname: string;
+  due_at: string;
+  overdue: boolean;
+}
+
 export interface Me {
   user: User;
   wallet: WalletBrief;
+  review_status: { blocked: boolean; due: DueReview[] };
 }
 
 export interface TokenResponse {
@@ -184,6 +198,7 @@ export interface Exchange {
   has_review: boolean;
   chat_state: ChatState;
   unread_count: number;
+  review_due_at: string | null;
   created_at: string;
   accepted_at: string | null;
   completed_at: string | null;
@@ -358,6 +373,10 @@ export interface ReviewAnalysis {
   base_bonus: number;
   final_bonus: number;
   adjustments: { rule: string; message: string; before: number | null; after: number | null }[];
+  review_quality: number;
+  review_quality_reason: string | null;
+  reviewer_reward: number;
+  reviewer_reward_note: string | null;
   created_at: string;
 }
 
