@@ -18,9 +18,10 @@ from tests.test_exchange_flow import _assert_ledger_consistent
 GOOD = {"rating": 5, "good_text": "하나하나 이유까지 설명해 주셔서 정말 이해가 잘 됐어요", "bad_text": "시간이 조금 짧았어요"}
 
 
-def _analysis(score: int, flags: list[str] | None = None) -> str:
+def _analysis(score: int, flags: list[str] | None = None, quality: int = 80) -> str:
     return json.dumps(
-        {"contribution_score": score, "summary": "요약이에요", "reasons": ["근거가 있어요"], "flags": flags or []},
+        {"contribution_score": score, "summary": "요약이에요", "reasons": ["근거가 있어요"], "flags": flags or [],
+         "review_quality": quality, "review_quality_reason": "근거예요"},
         ensure_ascii=False,
     )
 
@@ -58,7 +59,7 @@ def test_good_review_pays_bonus_from_pool(client: TestClient, db: Session) -> No
     assert a["base_bonus"] == 10  # 50의 20%
     assert a["final_bonus"] == 10
     assert provider.wallet() == (160, 0)  # 100 + 50 + 보너스 10
-    assert _pool(db) == pool_before - 10
+    assert _pool(db) == pool_before - 10 - 5  # 제공자 보너스 10 + 요청자 후기 환급 5
     assert "review" not in learner.get(f"/exchanges/{ex_id}").json()["actions"]
 
     history = provider.get("/wallet/ledger").json()["items"]
