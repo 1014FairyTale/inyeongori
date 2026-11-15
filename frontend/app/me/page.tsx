@@ -8,6 +8,7 @@ import { AiBadge } from "@/components/AiBadge";
 import { ListingCard } from "@/components/ListingCard";
 import { RequireLogin } from "@/components/RequireLogin";
 import { Button, Card, ErrorBox, Field } from "@/components/ui";
+import { LogoSpinner } from "@/components/Logo";
 
 function Profile() {
   const { me } = useAuth();
@@ -58,7 +59,7 @@ function Profile() {
   return (
     <div className="space-y-6">
       <Card className="space-y-1">
-        <h1 className="text-2xl font-bold">{me.user.nickname}</h1>
+        <h1 className="text-3xl font-black">{me.user.nickname}</h1>
         <p className="text-sm text-muted">
           {[me.user.school, me.user.major].filter(Boolean).join(" · ") || "학교·전공 미입력"}
         </p>
@@ -68,14 +69,14 @@ function Profile() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">내 재능</h2>
-          <Link href="/onboarding" className="text-sm font-medium text-ai">
-            ✨ AI로 더 찾기
+          <Link href="/onboarding" className="text-sm font-medium text-brand">
+            AI로 더 찾기
           </Link>
         </div>
         {talents === null ? (
-          <p className="text-muted">불러오는 중…</p>
+          <LogoSpinner size={40} />
         ) : talents.length === 0 ? (
-          <Card className="space-y-3 text-center">
+          <Card className="space-y-3">
             <p className="text-muted">아직 확정한 재능이 없어요.</p>
             <Link href="/onboarding" className="font-semibold text-brand">
               AI로 내 재능 찾기
@@ -84,13 +85,13 @@ function Profile() {
         ) : (
           <ul className="space-y-2">
             {talents.map((t) => (
-              <li key={t.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+              <li key={t.id} className="flex items-start justify-between gap-3 border-b border-line py-4">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{t.name}</p>
                     {t.source === "ai_confirmed" && <AiBadge label="AI가 찾음" />}
                   </div>
-                  <p className="text-xs text-brand">{t.category}</p>
+                  <p className="text-xs font-bold text-muted">{t.category}</p>
                   {t.description && <p className="text-sm text-muted">{t.description}</p>}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2 text-sm">
@@ -118,7 +119,7 @@ function Profile() {
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-card px-3.5 py-3"
+                  className="w-full border border-line px-3.5 py-3"
                 >
                   <option value="">골라 주세요</option>
                   {categories.map((c) => (

@@ -13,6 +13,8 @@ import { TokenAmount } from "@/components/TokenAmount";
 import { ReviewSection } from "@/components/ReviewSection";
 import { ChatPanel } from "@/components/ChatPanel";
 import { Button, Card, ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
+import { AiBadge } from "@/components/AiBadge";
 
 const ACTIONS: Record<
   Exclude<ExchangeAction, "propose" | "review">,
@@ -117,7 +119,7 @@ function ExchangeDetail() {
     }
   }
 
-  if (!ex) return error ? <ErrorBox message={error} /> : <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!ex) return error ? <ErrorBox message={error} /> : <PageLoading />;
 
   const counterpart = ex.my_role === "requester" ? ex.provider : ex.requester;
   const step = stepIndex(ex);
@@ -146,7 +148,7 @@ function ExchangeDetail() {
         ? `${ex.price_tokens}토큰을 받았어요. 수고하셨어요!`
         : ex.has_review
           ? "거래가 완료됐어요. 후기를 남겨 주셔서 고마워요!"
-          : "거래가 완료됐어요. 아래에서 후기를 남겨 주세요 ✍️";
+          : "거래가 완료됐어요. 아래에서 후기를 남겨 주세요 ";
   } else {
     hint = ex.status === "rejected" ? "제공자가 요청을 거절했어요." : "거래가 취소됐어요. 보류된 토큰이 있었다면 환불됐어요.";
   }
@@ -158,15 +160,15 @@ function ExchangeDetail() {
   return (
     <div className="space-y-5">
       <Link href="/exchanges" className="text-sm text-muted">
-        ← 내 거래
+        내 거래
       </Link>
 
-      <Card className="space-y-3">
+      <section className="space-y-3 border-t border-foreground pt-4">
         <div className="flex items-center justify-between">
           <StatusBadge status={ex.status} />
           <TokenAmount amount={ex.price_tokens} />
         </div>
-        <h1 className="text-xl font-bold">
+        <h1 className="text-2xl font-black">
           {ex.listing_id ? <Link href={`/market/${ex.listing_id}`}>{ex.listing_title}</Link> : "재능 교환"}
         </h1>
         <p className="text-sm text-muted">
@@ -177,30 +179,30 @@ function ExchangeDetail() {
           <ol className="flex items-center gap-1 pt-1 text-xs">
             {STEPS.map((s, i) => (
               <li key={s} className="flex flex-1 flex-col items-center gap-1">
-                <span className={`h-1.5 w-full rounded-full ${i <= step ? "bg-brand" : "bg-border"}`} />
+                <span className={`h-[3px] w-full ${i <= step ? "bg-brand" : "bg-line"}`} />
                 <span className={i <= step ? "font-semibold text-brand" : "text-muted"}>{s}</span>
               </li>
             ))}
           </ol>
         )}
-      </Card>
+      </section>
 
-      <div className="rounded-xl bg-brand-soft px-4 py-3 text-sm">{hint}</div>
+      {hint && <p className="text-sm font-medium">{hint}</p>}
 
       {ex.chat_state !== "closed" && !blocked && (
-        <a href="#chat" className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm">
+        <a href="#chat" className="flex items-center justify-between border-y border-line py-3 text-sm hover:text-brand">
           <span>
-            💬 <b>{counterpart.nickname}</b>님과 대화하기
+            <b>{counterpart.nickname}</b>님과 대화하기
           </span>
           {ex.unread_count > 0 ? (
-            <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">새 메시지 {ex.unread_count}</span>
+            <span className="text-xs font-bold text-brand">새 메시지 {ex.unread_count}</span>
           ) : (
-            <span className="text-muted">↓</span>
+            <span className="text-muted underline underline-offset-4">대화로 이동</span>
           )}
         </a>
       )}
       {ex.status === "requested" && (
-        <p className="text-center text-xs text-muted">거래가 수락되면 {counterpart.nickname}님과 채팅할 수 있어요.</p>
+        <p className="text-xs text-muted">거래가 수락되면 {counterpart.nickname}님과 채팅할 수 있어요.</p>
       )}
 
       {ex.status === "completed" && (
@@ -218,9 +220,7 @@ function ExchangeDetail() {
           <h2 className="font-bold">
             합의서 <span className="text-sm font-normal text-muted">v{ag.version}</span>
           </h2>
-          {ag.ai_generated && (
-            <span className="rounded-full bg-ai-soft px-2 py-0.5 text-xs font-semibold text-ai">✨ AI 제안</span>
-          )}
+          {ag.ai_generated && <AiBadge />}
         </div>
         {editing ? (
           <TermsForm
@@ -233,15 +233,15 @@ function ExchangeDetail() {
         ) : (
           <>
             <TermsView terms={ag.terms} />
-            <div className="space-y-1 border-t border-border pt-3 text-sm">
+            <div className="space-y-1 border-t border-line pt-3 text-sm">
               <p>
                 <span className="text-muted">합의 동의 · </span>
-                {mineAgreed ? "✅" : "⏳"} 나 &nbsp; {theirsAgreed ? "✅" : "⏳"} {counterpart.nickname}
+                <Check on={mineAgreed} who="나" /> <Check on={theirsAgreed} who={counterpart.nickname} />
               </p>
               {(ex.status === "accepted" || ex.status === "completed") && (
                 <p>
                   <span className="text-muted">완료 확인 · </span>
-                  {mineDone ? "✅" : "⏳"} 나 &nbsp; {theirsDone ? "✅" : "⏳"} {counterpart.nickname}
+                  <Check on={mineDone} who="나" /> <Check on={theirsDone} who={counterpart.nickname} />
                 </p>
               )}
             </div>
@@ -294,10 +294,19 @@ function ExchangeDetail() {
   );
 }
 
+/** 동의·완료 여부를 글자로 보여 줘요: "나 동의함 · 민수 기다리는 중" */
+function Check({ on, who }: { on: boolean; who: string }) {
+  return (
+    <span className="mr-3 whitespace-nowrap">
+      {who} <b className={on ? "text-success" : "text-muted"}>{on ? "완료" : "대기"}</b>
+    </span>
+  );
+}
+
 export default function ExchangeDetailPage() {
   return (
     <RequireLogin>
-      <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+      <Suspense fallback={<PageLoading />}>
         <ExchangeDetail />
       </Suspense>
     </RequireLogin>

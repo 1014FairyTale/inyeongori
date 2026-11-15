@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
-import { Card } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 function LoginLink() {
   const pathname = usePathname();
   return (
-    <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="font-semibold text-brand">
+    <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="font-bold text-brand underline underline-offset-4">
       로그인하러 가기
     </Link>
   );
@@ -18,21 +18,21 @@ function LoginLink() {
 /** 로그인한 사용자에게만 children을 보여 줘요. */
 export function RequireLogin({ children }: { children: ReactNode }) {
   const { me, loading } = useAuth();
-  if (loading) return <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (loading) return <PageLoading />;
   if (!me) {
     return (
-      <Card className="space-y-3 text-center">
-        <p>로그인이 필요해요.</p>
+      <div className="space-y-3 border-t border-foreground py-10 text-center">
+        <p className="text-lg font-bold">로그인이 필요해요</p>
         <Suspense
           fallback={
-            <Link href="/login" className="font-semibold text-brand">
+            <Link href="/login" className="font-bold text-brand underline underline-offset-4">
               로그인하러 가기
             </Link>
           }
         >
           <LoginLink />
         </Suspense>
-      </Card>
+      </div>
     );
   }
   return <>{children}</>;

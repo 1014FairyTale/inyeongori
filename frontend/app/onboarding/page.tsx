@@ -8,6 +8,7 @@ import { AiLoading } from "@/components/AiLoading";
 import { CandidateCard } from "@/components/CandidateCard";
 import { RequireLogin } from "@/components/RequireLogin";
 import { Button, Card, ErrorBox, Field, TextArea } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 const LOADING_MESSAGES = [
   "적어 주신 경험을 꼼꼼히 읽고 있어요…",
@@ -82,14 +83,14 @@ function Onboarding() {
     setSession((s) => (s ? { ...s, candidates: s.candidates.map((c) => (c.id === next.id ? next : c)) } : s));
   }
 
-  if (!checked) return <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!checked) return <PageLoading />;
   if (running) return <AiLoading messages={LOADING_MESSAGES} />;
 
   if (showForm || !session) {
     return (
       <div className="space-y-5">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">{me?.user.nickname}님의 숨은 재능을 찾아 볼게요 ✨</h1>
+          <h1 className="text-3xl font-black">{me?.user.nickname}님의 숨은 재능을 찾아 볼게요</h1>
           <p className="text-muted">대단한 경험이 아니어도 괜찮아요. 평소 하던 일을 편하게 적어 주세요.</p>
         </div>
         <Card>
@@ -127,7 +128,7 @@ function Onboarding() {
                 <ErrorBox message={error} />
               </div>
             )}
-            <Button type="submit">{error && form.intro_text.trim().length >= 5 ? "다시 시도" : "✨ AI로 내 재능 찾기"}</Button>
+            <Button type="submit">{error && form.intro_text.trim().length >= 5 ? "다시 시도" : "AI로 내 재능 찾기"}</Button>
             <button type="button" onClick={() => setForm(EXAMPLE)} className="w-full text-center text-sm text-muted underline">
               예시로 채워 보기
             </button>
@@ -135,7 +136,7 @@ function Onboarding() {
         </Card>
         {session && (
           <button onClick={() => setShowForm(false)} className="w-full text-center text-sm text-muted">
-            ← 지난 결과 보기
+            지난 결과 보기
           </button>
         )}
       </div>
@@ -148,9 +149,9 @@ function Onboarding() {
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">이런 재능이 숨어 있었어요!</h1>
+        <h1 className="text-3xl font-black">이런 재능이 숨어 있었어요</h1>
         {session.encouragement && (
-          <p className="rounded-xl bg-ai-soft px-4 py-3 text-sm text-ai">💜 {session.encouragement}</p>
+          <p className="px-4 py-3 text-sm text-brand">{session.encouragement}</p>
         )}
         <p className="text-sm text-muted">
           AI가 추론한 후보예요. 확정은 {me?.user.nickname}님이 해요. 맞는 것만 골라 주세요.
@@ -176,7 +177,7 @@ function Onboarding() {
                 category: kept[0].category,
                 description: kept[0].final_description ?? kept[0].description,
               })}`}
-              className="block rounded-xl bg-brand px-4 py-3 text-center font-semibold text-white"
+              className="block bg-brand px-4 py-3 text-center font-bold text-white hover:bg-foreground"
             >
               &lsquo;{kept[0].final_name ?? kept[0].name}&rsquo; 마켓에 올리기
             </Link>

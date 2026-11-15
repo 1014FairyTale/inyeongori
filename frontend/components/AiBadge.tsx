@@ -1,7 +1,4 @@
+/** AI가 만든 내용 표시. 장식 없이 주황 글자로만 표시해요. */
 export function AiBadge({ label = "AI 제안" }: { label?: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-ai-soft px-2 py-0.5 text-xs font-semibold text-ai">
-      ✨ {label}
-    </span>
-  );
+  return <span className="text-xs font-bold tracking-wide text-brand">{label}</span>;
 }

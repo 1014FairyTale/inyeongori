@@ -6,10 +6,11 @@ import { Suspense, useEffect, useState } from "react";
 import { api, ApiError, type Listing, type Page } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 import { Button, ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 export default function MarketPage() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+    <Suspense fallback={<PageLoading />}>
       <Market />
     </Suspense>
   );
@@ -50,13 +51,13 @@ function Market() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">재능 마켓</h1>
-        <Link href="/market/new" className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white">
+        <h1 className="text-3xl font-black">재능 마켓</h1>
+        <Link href="/market/new" className="bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-foreground">
           + 재능 등록
         </Link>
       </div>
-      <Link href="/plans" className="block rounded-xl bg-ai-soft px-4 py-3 text-sm text-ai">
-        ✂️ 뭘 부탁해야 할지 막막하다면? <b>큰 목표를 작은 부탁으로 쪼개 보세요 →</b>
+      <Link href="/plans" className="block px-4 py-3 text-sm text-brand">
+        뭘 부탁해야 할지 막막하다면? <b>큰 목표를 작은 부탁으로 쪼개 보세요 →</b>
       </Link>
 
       <form
@@ -70,10 +71,10 @@ function Market() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="어떤 도움이 필요하세요? 예: PPT, 엑셀"
-          className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3.5 py-2.5 outline-none focus:border-brand"
+          className="min-w-0 flex-1 border border-line bg-transparent px-3.5 py-2.5 outline-none focus:border-foreground"
           maxLength={50}
         />
-        <button className="rounded-xl bg-foreground px-4 text-sm font-semibold text-white">검색</button>
+        <button className="bg-foreground px-4 text-sm font-bold text-white hover:bg-brand">검색</button>
       </form>
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -81,9 +82,7 @@ function Market() {
           <button
             key={c ?? "all"}
             onClick={() => setCategory(c)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
-              category === c ? "border-brand bg-brand text-white" : "border-border bg-card text-muted"
-            }`}
+            className={`shrink-0 border-b-2 px-1 py-2 text-sm ${category === c ? "border-brand font-bold text-foreground" : "border-transparent text-muted"}`}
           >
             {c ?? "전체"}
           </button>
@@ -98,7 +97,7 @@ function Market() {
           </Button>
         </div>
       ) : !data ? (
-        <p className="py-10 text-center text-muted">불러오는 중…</p>
+        <PageLoading />
       ) : data.items.length === 0 ? (
         <p className="py-10 text-center text-muted">
           {query || category ? "조건에 맞는 재능이 아직 없어요." : "아직 등록된 재능이 없어요. 첫 재능을 올려 보세요!"}

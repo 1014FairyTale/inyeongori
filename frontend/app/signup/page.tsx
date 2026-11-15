@@ -59,7 +59,7 @@ function SignupForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">반가워요! 👋</h1>
+        <h1 className="text-3xl font-black">반가워요</h1>
         <p className="text-muted">
           가입하면 <b className="text-brand">100토큰</b>을 드려요. 바로 재능을 나누고 받아 보세요.
         </p>

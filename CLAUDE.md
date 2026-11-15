@@ -1,6 +1,6 @@
 # 인연고리 — 작업 가이드 (Claude용)
 
-AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는 **대학생 재능 교류 플랫폼**. 해커톤 데모용 MVP.
+AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는 **재능 교류 플랫폼**. 해커톤 데모용 MVP.
 
 ## 작업 방식 (반드시 지킬 것)
 1. 단계별로 진행하고, 단계가 끝나면 **만든 것 / 실행 방법 / 확인 방법 / 남은 이슈**를 보고한 뒤 멈춘다.
@@ -143,6 +143,12 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 브라우저 패널 스크린샷이 오른쪽이 잘려 보일 때가 있음 → 레이아웃 판단은 JS로 `scrollWidth`/요소 rect 확인.
 - `Field`/`TextArea`의 `className`은 기본 스타일에 '추가'된다 (덮어쓰기 아님). 높이 조절 등에 사용.
 - AI 결과 UI 공통 컴포넌트: `AiBadge`(✨ AI 제안), `AiLoading`(문구 순환 로딩), 실패 시 ErrorBox + "다시 시도".
+
+## 디자인 규칙 (개편 후)
+- 색 토큰(globals.css): background 크림, foreground, muted, line, brand(주황), danger, success. radius는 전부 0.
+- 금지: 둥근 모서리, 색 띠 콜아웃(border-l 강조), 배경색 강조 박스, 그라데이션, 그림자, 이모지·장식 아이콘, 같은 크기 카드 격자, 과장된 라벨.
+- 구획 = `Card`(border-t border-foreground) 또는 선으로 구분한 목록(border-b border-line). 뱃지·상태는 색 글자. 채운 배경은 주 버튼(bg-brand)만.
+- 로딩은 `PageLoading`/`LogoSpinner`(components/Logo.tsx), AI 로딩은 `AiLoading`. "불러오는 중…" 글자만 쓰지 말 것.
 
 ## 결정 사항
 README.md의 "결정 사항" 섹션이 기준. 바뀌면 둘 다 갱신.

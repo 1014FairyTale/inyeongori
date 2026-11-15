@@ -1,30 +1,43 @@
 @import "tailwindcss";
 
+/*
+ * 인연고리 디자인 원칙 (2026-11-15 개편)
+ * - 납작하고 단정하게: 각진 모서리, 1px 선(hairline)으로만 구획을 나눠요.
+ * - 쓰지 않는 것: 둥근 모서리 박스, 색 띠 콜아웃, 배경색 강조 박스, 그라데이션, 그림자,
+ *   이모지·장식 아이콘, 같은 크기 카드 격자, 과장된 라벨.
+ * - 색: 크림 바탕 + 검정 글자 + 로고 주황 하나만 강조색으로 써요.
+ * - 위계는 글자 크기·굵기·선으로 만들어요.
+ */
+
 :root {
-  --background: #fffaf5;
-  --foreground: #1f1a17;
-  --muted: #6b625c;
-  --card: #ffffff;
-  --border: #eadfd6;
-  --brand: #e8590c;
-  --brand-soft: #fff0e6;
-  --ai: #6741d9;
-  --ai-soft: #f3f0ff;
-  --danger: #c92a2a;
+  --background: #fffaf5; /* 로고 배너의 크림 바탕 */
+  --foreground: #1c1917; /* 로고 검정 고리 */
+  --muted: #6f655f;
+  --line: #e7d8cc; /* 가는 구분선 */
+  --brand: #e8590c; /* 로고 주황 고리 */
+  --danger: #b42318;
+  --success: #2f6f3e;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-card: var(--card);
-  --color-border: var(--border);
+  --color-line: var(--line);
   --color-brand: var(--brand);
-  --color-brand-soft: var(--brand-soft);
-  --color-ai: var(--ai);
-  --color-ai-soft: var(--ai-soft);
   --color-danger: var(--danger);
-  --font-sans: "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --color-success: var(--success);
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  /* 모서리는 모두 각지게 */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
 body {
@@ -32,4 +45,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }

@@ -10,12 +10,12 @@ export const STATUS_LABEL: Record<ExchangeStatus, string> = {
 };
 
 export const STATUS_STYLE: Record<ExchangeStatus, string> = {
-  requested: "bg-amber-100 text-amber-800",
-  accepted: "bg-blue-100 text-blue-800",
-  cancel_requested: "bg-red-100 text-red-700",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-600",
-  rejected: "bg-gray-100 text-gray-600",
+  requested: "text-brand",
+  accepted: "text-foreground",
+  cancel_requested: "text-danger",
+  completed: "text-success",
+  cancelled: "text-muted",
+  rejected: "text-muted",
 };
 
 export function formatDate(iso: string): string {

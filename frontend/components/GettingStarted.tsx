@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 const STEPS: Record<StepKey, { title: string; desc: string; href: string; cta: string }> = {
   discover: { title: "AI로 내 재능 찾기", desc: "경험을 적으면 AI가 재능 후보를 찾아 줘요", href: "/onboarding", cta: "찾기" },
   list: { title: "내 재능을 마켓에 올리기", desc: "가격은 직접 정해요. 요청을 받으면 토큰을 벌어요", href: "/market/new", cta: "올리기" },
-  request: { title: "필요한 도움 요청하기", desc: "🔎 찾기에서 맞는 학생을 추천받아요", href: "/match", cta: "찾아보기" },
+  request: { title: "필요한 도움 요청하기", desc: "찾기에서 맞는 학생을 추천받아요", href: "/match", cta: "찾아보기" },
   chat: { title: "수락된 거래에서 대화하기", desc: "채팅으로 일정과 진행 방식을 정해요", href: "/exchanges", cta: "거래 보기" },
   review: { title: "완료 후 후기 남기기", desc: "7일 안에 성의 있게 쓰면 10%를 돌려받아요", href: "/exchanges", cta: "거래 보기" },
 };
@@ -48,56 +48,49 @@ export function GettingStarted() {
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-brand/30 bg-card p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-bold">🚀 첫 걸음</h2>
-          <p className="text-xs text-muted">
-            {done}/{steps.length} 완료 ·{" "}
-            <Link href="/guide?next=/" className="underline underline-offset-2">
-              이용 가이드 다시 보기
-            </Link>
-          </p>
-        </div>
-        <button onClick={hide} className="text-xs text-muted" aria-label="첫 걸음 체크리스트 숨기기">
-          숨기기
-        </button>
+    <section aria-labelledby="first-steps">
+      <div className="flex items-baseline justify-between border-b border-foreground pb-2">
+        <h2 id="first-steps" className="text-sm font-bold">
+          첫 걸음 <span className="font-normal text-muted tabular-nums">{done}/{steps.length}</span>
+        </h2>
+        <span className="flex gap-3 text-xs text-muted">
+          <Link href="/guide?next=/" className="underline underline-offset-4 hover:text-foreground">
+            이용 가이드
+          </Link>
+          <button onClick={hide} className="hover:text-foreground" aria-label="첫 걸음 목록 숨기기">
+            숨기기
+          </button>
+        </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-border">
-        <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${(done / steps.length) * 100}%` }} />
+      {/* 진행도: 단계 수만큼 나눈 가는 선 */}
+      <div className="flex gap-1 pt-2" aria-hidden>
+        {steps.map((s) => (
+          <span key={s.key} className={`h-0.5 flex-1 ${s.done ?"bg-foreground":"bg-line"}`} />
+        ))}
       </div>
-      <ol className="space-y-1.5">
+      <ol>
         {steps.map((s, idx) => {
           const info = STEPS[s.key];
           const isNext = s.key === nextKey;
           return (
-            <li
-              key={s.key}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${isNext ? "bg-brand-soft" : ""}`}
-            >
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                  s.done ? "bg-green-600 text-white" : isNext ? "bg-brand text-white" : "bg-border text-muted"
-                }`}
-                aria-hidden
-              >
-                {s.done ? "✓" : idx + 1}
+            <li key={s.key} className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-x-2 border-b border-line py-3">
+              <span className={`text-sm font-black tabular-nums ${isNext ?"text-brand":"text-muted"}`}>
+                {String(idx + 1).padStart(2, "0")}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className={`block text-sm font-semibold ${s.done ? "text-muted line-through" : ""}`}>{info.title}</span>
+              <span className="min-w-0">
+                <span className={`block font-semibold ${s.done ?"text-muted line-through":""}`}>{info.title}</span>
                 {!s.done && <span className="block text-xs text-muted">{info.desc}</span>}
               </span>
-              {!s.done && (
+              {s.done ? (
+                <span className="text-xs font-semibold text-success">완료</span>
+              ) : (
                 <Link
                   href={info.href}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
-                    isNext ? "bg-brand text-white" : "border border-border text-muted"
-                  }`}
+                  className={`text-sm font-bold underline-offset-4 hover:underline ${isNext ?"text-brand":"text-muted"}`}
                 >
                   {info.cta}
                 </Link>
               )}
-              <span className="sr-only">{s.done ? "완료" : "아직 안 함"}</span>
             </li>
           );
         })}

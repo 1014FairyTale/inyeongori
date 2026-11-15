@@ -41,17 +41,15 @@ export function CandidateCard({
 
   return (
     <article
-      className={`space-y-3 rounded-2xl border bg-card p-5 transition ${
-        kept ? "border-green-300" : candidate.status === "rejected" ? "border-border opacity-60" : "border-border"
-      }`}
+      className={`space-y-3 border-t py-5 ${kept ? "border-success" : candidate.status === "rejected" ? "border-line opacity-60" : "border-foreground"}`}
     >
       <div className="flex items-center justify-between gap-2">
         <AiBadge />
-        <span className="text-xs font-medium text-brand">{candidate.category}</span>
+        <span className="text-xs font-bold text-muted">{candidate.category}</span>
       </div>
 
       <div>
-        <h3 className="text-lg font-bold">{candidate.final_name ?? candidate.name}</h3>
+        <h3 className="text-xl font-black">{candidate.final_name ?? candidate.name}</h3>
         {candidate.status === "edited" && candidate.final_name !== candidate.name && (
           <p className="text-xs text-muted">AI 원래 제안: {candidate.name}</p>
         )}
@@ -60,15 +58,15 @@ export function CandidateCard({
         )}
       </div>
 
-      <div className="space-y-1 rounded-xl bg-background px-3.5 py-3 text-sm">
-        <p className="font-medium text-muted">이렇게 생각했어요</p>
+      <div className="space-y-1 text-sm">
+        <p className="text-xs font-bold text-muted">이렇게 생각했어요</p>
         <p>{candidate.evidence}</p>
         {candidate.source_quote && <p className="text-muted">— &ldquo;{candidate.source_quote}&rdquo;</p>}
       </div>
 
       {!decided && !editing && (
         <>
-          <p className="font-semibold">🙋 {candidate.confirm_question}</p>
+          <p className="font-semibold">{candidate.confirm_question}</p>
           <div className="grid grid-cols-3 gap-2">
             <Button disabled={busy} onClick={() => decide("accept")} className="px-2 py-2.5 text-sm">
               맞아요
@@ -104,10 +102,10 @@ export function CandidateCard({
       )}
 
       {decided && !editing && (
-        <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-sm">
-          <span className={kept ? "font-semibold text-green-700" : "text-muted"}>
-            {candidate.status === "accepted" && "✅ 내 재능으로 저장했어요"}
-            {candidate.status === "edited" && "✏️ 고쳐서 저장했어요"}
+        <div className="flex items-center justify-between gap-2 border-t border-line pt-3 text-sm">
+          <span className={kept ? "font-bold text-success" : "text-muted"}>
+            {candidate.status === "accepted" && "내 재능으로 저장했어요"}
+            {candidate.status === "edited" && "고쳐서 저장했어요"}
             {candidate.status === "rejected" && "빼 두었어요"}
           </span>
           <div className="flex gap-3">

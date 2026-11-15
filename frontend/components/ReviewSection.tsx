@@ -23,7 +23,7 @@ function Stars({ value, onChange }: { value: number; onChange?: (v: number) => v
           aria-label={`${n}점`}
           aria-checked={onChange ? value === n : undefined}
           role={onChange ? "radio" : undefined}
-          className={`text-3xl leading-none ${n <= value ? "text-amber-400" : "text-border"} disabled:cursor-default`}
+          className={`text-2xl leading-none ${n <= value ? "text-brand" : "text-line"} disabled:cursor-default`}
         >
           ★
         </button>
@@ -35,17 +35,17 @@ function Stars({ value, onChange }: { value: number; onChange?: (v: number) => v
 function AnalysisCard({ a, isProvider, providerName }: { a: ReviewAnalysis; isProvider: boolean; providerName: string }) {
   const [showSteps, setShowSteps] = useState(false);
   return (
-    <div className="space-y-3 rounded-2xl border border-ai/30 bg-ai-soft/50 p-4">
+    <section className="space-y-4 border-t border-foreground pt-4">
       <div className="flex items-center justify-between">
         <AiBadge label="AI 후기 분석" />
-        <span className="text-sm font-bold text-ai">기여도 {a.contribution_score}점</span>
+        <span className="text-sm font-bold text-brand">기여도 {a.contribution_score}점</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-card">
-        <div className="h-full rounded-full bg-ai" style={{ width: `${a.contribution_score}%` }} />
+      <div className="h-[3px] bg-line" aria-hidden>
+        <div className="h-full bg-brand" style={{ width: `${a.contribution_score}%` }} />
       </div>
       <p className="text-sm">{a.summary}</p>
-      <div className="space-y-1 rounded-xl bg-card px-3.5 py-3 text-sm">
-        <p className="font-medium text-muted">AI 판단 근거</p>
+      <div className="space-y-1 text-sm">
+        <p className="text-xs font-bold text-muted">AI 판단 근거</p>
         <ul className="list-disc space-y-1 pl-5">
           {a.reasons.map((r) => (
             <li key={r}>{r}</li>
@@ -55,18 +55,18 @@ function AnalysisCard({ a, isProvider, providerName }: { a: ReviewAnalysis; isPr
       </div>
 
       {a.final_bonus > 0 ? (
-        <p className="rounded-xl bg-brand-soft px-4 py-3 font-semibold text-brand">
-          🎁 {isProvider ? `정성스러운 도움 덕분에 보너스 ${a.final_bonus}토큰을 받았어요!` : `${providerName}님에게 보너스 ${a.final_bonus}토큰이 지급됐어요`}
+        <p className="border-t border-line pt-3 font-bold text-brand">
+          {isProvider ? `정성스러운 도움 덕분에 보너스 ${a.final_bonus}토큰을 받았어요` : `${providerName}님에게 보너스 ${a.final_bonus}토큰이 지급됐어요`}
         </p>
       ) : (
-        <p className="rounded-xl bg-card px-4 py-3 text-sm text-muted">이번 거래는 보너스 지급 조건에 해당하지 않았어요.</p>
+        <p className="border-t border-line pt-3 text-sm text-muted">이번 거래는 보너스 지급 조건에 해당하지 않았어요.</p>
       )}
 
       {!isProvider && (
-        <div className={`space-y-1 rounded-xl px-4 py-3 text-sm ${a.reviewer_reward > 0 ? "bg-green-50" : "bg-card"}`}>
+        <div className="space-y-1 border-t border-line pt-3 text-sm">
           <p className="font-semibold">
-            📝 후기 성의 점수 {a.review_quality}점
-            {a.reviewer_reward > 0 && <span className="text-green-700"> · {a.reviewer_reward}토큰을 돌려받았어요!</span>}
+            후기 성의 점수 {a.review_quality}점
+            {a.reviewer_reward > 0 && <span className="text-success"> · {a.reviewer_reward}토큰을 돌려받았어요</span>}
           </p>
           {a.review_quality_reason && <p className="text-muted">{a.review_quality_reason}</p>}
           {a.reviewer_reward === 0 && a.reviewer_reward_note && <p className="text-xs text-muted">{a.reviewer_reward_note}</p>}
@@ -79,7 +79,7 @@ function AnalysisCard({ a, isProvider, providerName }: { a: ReviewAnalysis; isPr
             {showSteps ? "계산 과정 접기" : "보너스 계산 과정 보기"}
           </button>
           {showSteps && (
-            <ol className="mt-2 space-y-1 rounded-xl bg-card px-3.5 py-3 text-xs text-muted">
+            <ol className="mt-2 space-y-1 text-xs text-muted">
               {a.adjustments.map((x, i) => (
                 <li key={i}>
                   {i + 1}. {x.message}
@@ -90,7 +90,7 @@ function AnalysisCard({ a, isProvider, providerName }: { a: ReviewAnalysis; isPr
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -146,7 +146,7 @@ export function ReviewSection({ exchange, onChanged }: { exchange: Exchange; onC
   if (busy && !data) return <AiLoading messages={LOADING} />;
 
   if (!data) {
-    if (isProvider) return <Card className="text-sm text-muted">요청자의 후기를 기다리고 있어요. 좋은 후기를 받으면 AI가 판단해서 보너스 토큰을 줘요 🎁</Card>;
+    if (isProvider) return <Card className="text-sm text-muted">요청자의 후기를 기다리고 있어요. 좋은 후기를 받으면 AI가 판단해서 보너스 토큰을 줘요.</Card>;
     const chars = good.trim().length + bad.trim().length;
     return (
       <Card className="space-y-4">
@@ -158,13 +158,13 @@ export function ReviewSection({ exchange, onChanged }: { exchange: Exchange; onC
         </div>
         {exchange.review_due_at &&
           (daysLeft(exchange.review_due_at) >= 0 ? (
-            <p className="rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-green-800">
-              🎁 <b>{formatDate(exchange.review_due_at)}</b>까지({dueLabel(exchange.review_due_at)}) 성의 있게 쓰면{" "}
+            <p className="text-sm text-success">
+              <b>{formatDate(exchange.review_due_at)}</b>까지({dueLabel(exchange.review_due_at)}) 성의 있게 쓰면{" "}
               <b>{Math.max(1, Math.round(exchange.price_tokens * REWARD_RATE))}토큰</b>(거래 토큰의 10%)을 돌려받아요.
-              좋았던 점·아쉬운 점을 구체적으로 적어 주세요. 불만이어도 괜찮아요!
+              좋았던 점·아쉬운 점을 구체적으로 적어 주세요. 불만이어도 괜찮아요.
             </p>
           ) : (
-            <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-danger">
+            <p className="text-sm text-danger">
               후기 기한이 지나서 인연고리 이용이 잠시 막혀 있어요. 후기를 쓰면 바로 다시 이용할 수 있어요. (기한이 지나 10% 환급은 없어요)
             </p>
           ))}
@@ -172,8 +172,8 @@ export function ReviewSection({ exchange, onChanged }: { exchange: Exchange; onC
           <Stars value={rating} onChange={setRating} />
           <TextArea label="좋았던 점" placeholder="예: 장표마다 왜 고쳐야 하는지 이유까지 설명해 줬어요" value={good} onChange={(e) => setGood(e.target.value)} maxLength={1000} />
           <TextArea label="아쉬운 점 (선택)" placeholder="예: 시간이 조금 짧았어요" value={bad} onChange={(e) => setBad(e.target.value)} maxLength={1000} className="min-h-16" />
-          <p className={`text-xs ${chars >= MIN_CHARS ? "text-green-700" : "text-muted"}`}>
-            {chars >= MIN_CHARS ? "✅ 구체적으로 적어 주셔서 고마워요" : `환급을 받으려면 ${MIN_CHARS}자 이상 구체적으로 적어 주세요 (${chars}자)`}
+          <p className={`text-xs ${chars >= MIN_CHARS ?"text-success":"text-muted"}`}>
+            {chars >= MIN_CHARS ? "구체적으로 적어 주셔서 고마워요" : `환급을 받으려면 ${MIN_CHARS}자 이상 구체적으로 적어 주세요 (${chars}자)`}
           </p>
           {error && <ErrorBox message={error} />}
           <Button type="submit" disabled={busy}>
@@ -192,8 +192,8 @@ export function ReviewSection({ exchange, onChanged }: { exchange: Exchange; onC
           <h2 className="font-bold">{isProvider ? "받은 후기" : "내가 남긴 후기"}</h2>
           <Stars value={r.rating} />
         </div>
-        <p className="text-sm">👍 {r.good_text}</p>
-        {r.bad_text && <p className="text-sm text-muted">🤏 {r.bad_text}</p>}
+        <p className="text-sm">{r.good_text}</p>
+        {r.bad_text && <p className="text-sm text-muted">{r.bad_text}</p>}
       </Card>
       {data.analysis ? (
         <AnalysisCard a={data.analysis} isProvider={isProvider} providerName={exchange.provider.nickname} />

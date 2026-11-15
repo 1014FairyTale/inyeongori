@@ -8,6 +8,7 @@ import { AiBadge } from "@/components/AiBadge";
 import { RequireLogin } from "@/components/RequireLogin";
 import { TokenAmount } from "@/components/TokenAmount";
 import { Button, Card, ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 interface Draft {
   id: number | null;
@@ -56,7 +57,7 @@ function PlanEditor() {
     api<string[]>("/listings/categories").then(setCategories).catch(() => setCategories([]));
   }, [id]);
 
-  if (!plan) return error ? <ErrorBox message={error} /> : <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!plan) return error ? <ErrorBox message={error} /> : <PageLoading />;
 
   const update = (i: number, patch: Partial<Draft>) => setDrafts((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
   const move = (i: number, dir: -1 | 1) =>
@@ -100,14 +101,14 @@ function PlanEditor() {
   return (
     <div className="space-y-5">
       <Link href="/plans" className="text-sm text-muted">
-        ← {plan.kind === "path" ? "목표 경로" : "부탁 쪼개기"}
+        {plan.kind === "path" ? "목표 경로" : "부탁 쪼개기"}
       </Link>
       <Card className="space-y-2">
         <div className="flex items-center justify-between">
           <AiBadge />
           <TokenAmount amount={plan.total_tokens} />
         </div>
-        <h1 className="text-xl font-bold">{plan.goal}</h1>
+        <h1 className="text-3xl font-black">{plan.goal}</h1>
         {plan.summary && <p className="text-sm text-muted">{plan.summary}</p>}
       </Card>
 
@@ -134,14 +135,14 @@ function PlanEditor() {
                 onChange={(e) => update(i, { title: e.target.value })}
                 maxLength={60}
                 placeholder="활동 이름"
-                className="w-full rounded-lg border border-border px-3 py-2 font-semibold"
+                className="w-full border border-line px-3 py-2 font-semibold"
               />
               <input
                 value={d.description}
                 onChange={(e) => update(i, { description: e.target.value })}
                 maxLength={200}
                 placeholder="무엇을 하는지 (선택)"
-                className="w-full rounded-lg border border-border px-3 py-2 text-sm"
+                className="w-full border border-line px-3 py-2 text-sm"
               />
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <label className="space-y-1">
@@ -152,7 +153,7 @@ function PlanEditor() {
                     max={120}
                     value={d.minutes}
                     onChange={(e) => update(i, { minutes: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-border px-2 py-2"
+                    className="w-full border border-line px-2 py-2"
                   />
                 </label>
                 <label className="space-y-1">
@@ -164,7 +165,7 @@ function PlanEditor() {
                     value={d.tokens ?? ""}
                     placeholder="자동"
                     onChange={(e) => update(i, { tokens: e.target.value === "" ? null : Number(e.target.value) })}
-                    className="w-full rounded-lg border border-border px-2 py-2"
+                    className="w-full border border-line px-2 py-2"
                   />
                 </label>
                 <label className="space-y-1">
@@ -172,7 +173,7 @@ function PlanEditor() {
                   <select
                     value={d.category}
                     onChange={(e) => update(i, { category: e.target.value })}
-                    className="w-full rounded-lg border border-border px-1 py-2"
+                    className="w-full border border-line px-1 py-2"
                   >
                     {categories.map((c) => (
                       <option key={c}>{c}</option>
@@ -224,31 +225,31 @@ function PlanEditor() {
         <>
           <ol className="space-y-3">
             {plan.items.map((it, i) => (
-              <li key={it.id} className="space-y-2 rounded-2xl border border-border bg-card p-4">
+              <li key={it.id} className="space-y-2 border-b border-line py-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs text-muted">
                       {plan.kind === "path" && i > 0 ? "→ " : ""}
-                      {i + 1}단계 · {it.category} · 약 {it.minutes}분 {it.edited && "· ✏️ 수정함"}
+                      {i + 1}단계 · {it.category} · 약 {it.minutes}분 {it.edited && "· 수정함"}
                     </p>
                     <p className="font-semibold">{it.title}</p>
                     {it.description && <p className="text-sm text-muted">{it.description}</p>}
                   </div>
                   <TokenAmount amount={it.suggested_tokens} className="shrink-0" />
                 </div>
-                {it.why && <p className="rounded-lg bg-ai-soft px-3 py-2 text-sm text-ai">🧭 왜 필요해요? {it.why}</p>}
-                <p className="text-xs text-muted">💡 {basisLabel(it)}</p>
+                {it.why && <p className="px-3 py-2 text-sm text-brand">왜 필요해요? {it.why}</p>}
+                <p className="text-xs text-muted">{basisLabel(it)}</p>
                 <div className="flex flex-wrap gap-2 text-sm">
                   {it.linked_listing ? (
-                    <Link href={`/market/${it.linked_listing.id}`} className="rounded-full bg-brand px-3 py-1.5 font-semibold text-white">
+                    <Link href={`/market/${it.linked_listing.id}`} className="bg-brand px-3 py-1.5 font-semibold text-white">
                       {it.linked_listing.provider_nickname}님에게 요청 ({it.linked_listing.price_tokens}토큰)
                     </Link>
                   ) : null}
                   <Link
                     href={`/match?q=${encodeURIComponent(`${it.title}: ${it.description ?? ""}`.slice(0, 300))}`}
-                    className="rounded-full border border-ai/40 px-3 py-1.5 font-medium text-ai"
+                    className="font-bold text-brand underline underline-offset-4"
                   >
-                    🔎 맞는 사람 찾기
+                    맞는 사람 찾기
                   </Link>
                 </div>
               </li>
@@ -266,7 +267,7 @@ function PlanEditor() {
 export default function PlanPage() {
   return (
     <RequireLogin>
-      <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+      <Suspense fallback={<PageLoading />}>
         <PlanEditor />
       </Suspense>
     </RequireLogin>

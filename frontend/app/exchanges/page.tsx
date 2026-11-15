@@ -8,6 +8,7 @@ import { RequireLogin } from "@/components/RequireLogin";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TokenAmount } from "@/components/TokenAmount";
 import { ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 const TABS = [
   { key: "all", label: "전체" },
@@ -32,15 +33,13 @@ function ExchangeList() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold">내 거래</h1>
+      <h1 className="text-3xl font-black">내 거래</h1>
       <div className="flex gap-2">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`rounded-full border px-3 py-1.5 text-sm ${
-              tab === t.key ? "border-brand bg-brand text-white" : "border-border bg-card text-muted"
-            }`}
+            className={`border-b-2 px-1 py-2 text-sm ${tab === t.key ? "border-brand font-bold text-foreground" : "border-transparent text-muted"}`}
           >
             {t.label}
           </button>
@@ -49,7 +48,7 @@ function ExchangeList() {
       {error ? (
         <ErrorBox message={error} />
       ) : !items ? (
-        <p className="py-10 text-center text-muted">불러오는 중…</p>
+        <PageLoading />
       ) : items.length === 0 ? (
         <p className="py-10 text-center text-muted">
           아직 거래가 없어요.{" "}
@@ -61,15 +60,15 @@ function ExchangeList() {
         <ul className="space-y-3">
           {items.map((x) => (
             <li key={x.id}>
-              <Link href={`/exchanges/${x.id}`} className="block rounded-2xl border border-border bg-card p-4 hover:border-brand">
+              <Link href={`/exchanges/${x.id}`} className="block border-b border-line py-4 hover:text-brand">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <StatusBadge status={x.status} />
                     {x.needs_my_action && (
-                      <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">내 차례</span>
+                      <span className="text-xs font-bold text-brand">내 차례</span>
                     )}
                     {x.unread_count > 0 && (
-                      <span className="rounded-full bg-ai px-2 py-0.5 text-xs font-bold text-white">💬 {x.unread_count}</span>
+                      <span className="text-xs font-bold text-brand">새 메시지 {x.unread_count}</span>
                     )}
                   </div>
                   <TokenAmount amount={x.price_tokens} />

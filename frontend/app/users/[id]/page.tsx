@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/format";
 import { AiBadge } from "@/components/AiBadge";
 import { ListingCard } from "@/components/ListingCard";
 import { Card, ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -28,16 +29,16 @@ function Profile() {
   }, [id]);
 
   if (error) return <ErrorBox message={error} />;
-  if (!profile) return <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!profile) return <PageLoading />;
 
   return (
     <div className="space-y-6">
       <Card className="space-y-1">
-        <h1 className="text-2xl font-bold">{profile.user.nickname}</h1>
+        <h1 className="text-3xl font-black">{profile.user.nickname}</h1>
         <p className="text-sm text-muted">
           {[profile.user.school, profile.user.major].filter(Boolean).join(" · ") || "학교·전공 미입력"}
           {` · 완료 ${profile.completed_count}회`}
-          {profile.rating_avg != null && profile.rating_count > 0 && ` · ⭐ ${profile.rating_avg.toFixed(1)} (${profile.rating_count})`}
+          {profile.rating_avg != null && profile.rating_count > 0 && ` · ${profile.rating_avg.toFixed(1)} (${profile.rating_count})`}
         </p>
         {profile.bio && <p className="pt-2 text-sm">{profile.bio}</p>}
       </Card>
@@ -49,7 +50,7 @@ function Profile() {
         ) : (
           <ul className="flex flex-wrap gap-2">
             {profile.talents.map((t) => (
-              <li key={t.id} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm">
+              <li key={t.id} className="flex items-center gap-1.5 border border-line px-3 py-1.5 text-sm">
                 {t.name}
                 {t.source === "ai_confirmed" && <AiBadge label="AI가 찾음" />}
               </li>
@@ -74,9 +75,9 @@ function Profile() {
         ) : (
           <ul className="space-y-2">
             {reviews.map((r) => (
-              <li key={r.id} className="space-y-1 rounded-2xl border border-border bg-card p-4 text-sm">
+              <li key={r.id} className="space-y-1 border-b border-line py-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-amber-400">{"★".repeat(r.rating)}<span className="text-border">{"★".repeat(5 - r.rating)}</span></span>
+                  <span className="text-brand">{"★".repeat(r.rating)}<span className="text-line">{"★".repeat(5 - r.rating)}</span></span>
                   <span className="text-xs text-muted">{formatDate(r.created_at)}</span>
                 </div>
                 <p>{r.good_text}</p>
@@ -84,7 +85,7 @@ function Profile() {
                 <p className="text-xs text-muted">
                   {r.reviewer_nickname}
                   {r.listing_title && ` · ${r.listing_title}`}
-                  {r.bonus > 0 && <span className="font-semibold text-brand"> · 🎁 AI 보너스 +{r.bonus}</span>}
+                  {r.bonus > 0 && <span className="font-semibold text-brand"> · AI 보너스 +{r.bonus}</span>}
                 </p>
               </li>
             ))}
@@ -97,7 +98,7 @@ function Profile() {
 
 export default function UserPage() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+    <Suspense fallback={<PageLoading />}>
       <Profile />
     </Suspense>
   );

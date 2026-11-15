@@ -38,7 +38,7 @@ function LoginForm() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">다시 오셨네요 😊</h1>
+      <h1 className="text-3xl font-black">다시 오셨네요</h1>
       <Card>
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <Field label="이메일" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />

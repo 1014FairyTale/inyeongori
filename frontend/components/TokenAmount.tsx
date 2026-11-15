@@ -1,9 +1,9 @@
+/** 토큰 금액. 숫자를 굵게, 단위는 작게. */
 export function TokenAmount({ amount, className = "" }: { amount: number; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 font-semibold text-brand ${className}`}>
-      <span aria-hidden>🪙</span>
+    <span className={`inline-flex items-baseline gap-0.5 whitespace-nowrap font-bold tabular-nums ${className}`}>
       {amount.toLocaleString("ko-KR")}
-      <span className="sr-only">토큰</span>
+      <span className="text-[0.75em] font-medium text-muted">토큰</span>
     </span>
   );
 }

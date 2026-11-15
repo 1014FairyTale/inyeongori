@@ -7,11 +7,11 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 const TABS = [
-  { href: "/", label: "홈", icon: "🏠" },
-  { href: "/market", label: "마켓", icon: "🛍️" },
-  { href: "/match", label: "찾기", icon: "🔎" },
-  { href: "/exchanges", label: "거래", icon: "🤝" },
-  { href: "/wallet", label: "지갑", icon: "🪙" },
+  { href: "/", label: "홈" },
+  { href: "/market", label: "마켓" },
+  { href: "/match", label: "찾기" },
+  { href: "/exchanges", label: "거래" },
+  { href: "/wallet", label: "지갑" },
 ];
 
 const UNREAD_POLL_MS = 15000;
@@ -41,7 +41,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const unread = useUnreadTotal();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-card/95 backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-foreground bg-background" aria-label="주요 메뉴">
       <ul className="mx-auto flex max-w-2xl">
         {TABS.map((t) => {
           const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
@@ -50,14 +50,14 @@ export function BottomNav() {
             <li key={t.href} className="flex-1">
               <Link
                 href={t.href}
-                className={`relative flex flex-col items-center gap-0.5 py-2 text-xs ${active ? "font-bold text-brand" : "text-muted"}`}
+                aria-current={active ? "page" : undefined}
+                className={`flex h-14 items-center justify-center gap-1 border-t-2 text-sm ${
+                  active ? "border-brand font-bold text-foreground" : "border-transparent text-muted hover:text-foreground"
+                }`}
               >
-                <span aria-hidden className="text-lg">
-                  {t.icon}
-                </span>
                 {t.label}
                 {badge && (
-                  <span className="absolute right-1/2 top-1 translate-x-5 rounded-full bg-danger px-1.5 text-[10px] font-bold leading-4 text-white">
+                  <span className="text-xs font-bold text-brand tabular-nums">
                     {unread > 99 ? "99+" : unread}
                     <span className="sr-only">개의 안 읽은 메시지</span>
                   </span>

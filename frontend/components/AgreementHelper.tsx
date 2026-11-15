@@ -50,7 +50,7 @@ export function AgreementHelper({
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-ai/30 bg-ai-soft/60 p-4">
+    <section className="space-y-3 border-t border-foreground pt-4">
       <div className="flex items-center gap-2">
         <AiBadge label="AI 합의 도우미" />
       </div>
@@ -66,8 +66,8 @@ export function AgreementHelper({
         className="min-h-16"
       />
       {!draft && (
-        <Button type="button" disabled={busy} onClick={() => run(answers)} className="bg-ai">
-          {busy ? "AI가 정리하는 중…" : "✨ AI로 조건 정리하기"}
+        <Button type="button" disabled={busy} onClick={() => run(answers)}>
+          {busy ? "AI가 정리하는 중…" : "AI로 조건 정리하기"}
         </Button>
       )}
 
@@ -82,14 +82,14 @@ export function AgreementHelper({
 
       {draft && (
         <div className="space-y-3">
-          <div className="rounded-xl bg-card px-3.5 py-3">
-            <p className="text-xs font-medium text-ai">AI가 정리한 조건</p>
+          <div className="border-y border-line py-3">
+            <p className="text-xs font-bold text-brand">AI가 정리한 조건</p>
             <p className="font-semibold">{draft.summary}</p>
           </div>
 
           {draft.missing.map((q) => (
-            <div key={q.field} className="space-y-2 rounded-xl bg-card px-3.5 py-3">
-              <p className="text-sm font-semibold">🙋 {q.question}</p>
+            <div key={q.field} className="space-y-2">
+              <p className="text-sm font-semibold">{q.question}</p>
               <div className="flex flex-wrap gap-2">
                 {q.options.map((o) => (
                   <button
@@ -97,7 +97,7 @@ export function AgreementHelper({
                     type="button"
                     disabled={busy}
                     onClick={() => answer(q.field, o)}
-                    className="rounded-full border border-border bg-background px-3 py-1.5 text-sm hover:border-ai"
+                    className="border border-line px-3 py-1.5 text-sm hover:border-foreground"
                   >
                     {o}
                   </button>
@@ -105,8 +105,8 @@ export function AgreementHelper({
               </div>
             </div>
           ))}
-          {busy && <p className="text-center text-sm text-ai">AI가 답변을 반영하는 중…</p>}
-          {draft.missing.length === 0 && !busy && <p className="text-sm text-green-700">✅ 중요한 조건이 모두 정해졌어요</p>}
+          {busy && <p className="text-sm text-brand">AI가 답변을 반영하는 중…</p>}
+          {draft.missing.length === 0 && !busy && <p className="text-sm text-success">중요한 조건이 모두 정해졌어요</p>}
 
           <div className="flex gap-2">
             <Button
@@ -128,6 +128,6 @@ export function AgreementHelper({
           <p className="text-xs text-muted">채운 뒤에도 아래 요청서에서 직접 고칠 수 있어요.</p>
         </div>
       )}
-    </div>
+    </section>
   );
 }

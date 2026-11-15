@@ -13,20 +13,20 @@ type Kind = "breakdown" | "path";
 
 const MODES: Record<Kind, { label: string; title: string; desc: string; examples: string[]; loading: string[]; cta: string }> = {
   breakdown: {
-    label: "✂️ 부탁 쪼개기",
+    label: "부탁 쪼개기",
     title: "큰 목표를 작은 부탁으로",
     desc: "큰 목표를 20~30분짜리 작은 부탁으로 나눠 드려요. 하나씩 부탁하면 부담이 훨씬 적어요.",
     examples: ["앱 개발을 배우고 싶어요", "토익 스피킹 레벨 6 받고 싶어요", "동아리 홍보 포스터를 직접 만들고 싶어요"],
     loading: ["목표를 살펴보고 있어요…", "20~30분짜리 활동으로 나누고 있어요…", "마켓 시세로 적정 토큰을 계산하고 있어요…"],
-    cta: "✨ AI로 쪼개기",
+    cta: "AI로 쪼개기",
   },
   path: {
-    label: "🧭 목표 경로",
+    label: "목표 경로",
     title: "목표까지 가는 교환 경로",
     desc: "목표를 이루려면 어떤 도움을 어떤 순서로 받으면 좋을지 설계하고, 단계마다 맞는 사람을 연결해 드려요.",
     examples: ["공모전에 나가고 싶어요", "첫 인턴 지원서를 내고 싶어요", "학교 축제 부스를 운영하고 싶어요"],
     loading: ["목표를 살펴보고 있어요…", "필요한 도움을 순서대로 설계하고 있어요…", "단계마다 맞는 재능을 찾고 있어요…"],
-    cta: "✨ AI로 경로 설계하기",
+    cta: "AI로 경로 설계하기",
   },
 };
 
@@ -61,19 +61,19 @@ function Plans() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-card p-1">
+      <div className="grid grid-cols-2 gap-2 p-1">
         {(Object.keys(MODES) as Kind[]).map((k) => (
           <button
             key={k}
             onClick={() => setKind(k)}
-            className={`rounded-xl py-2.5 text-sm font-semibold ${kind === k ? "bg-brand text-white" : "text-muted"}`}
+            className={`border-b-2 py-2.5 text-sm ${kind === k ? "border-brand font-bold text-foreground" : "border-transparent text-muted"}`}
           >
             {MODES[k].label}
           </button>
         ))}
       </div>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">{mode.title}</h1>
+        <h1 className="text-3xl font-black">{mode.title}</h1>
         <p className="text-muted">{mode.desc}</p>
       </div>
       <Card>
@@ -92,7 +92,7 @@ function Plans() {
                 key={ex}
                 type="button"
                 onClick={() => setGoal(ex)}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted"
+                className="text-xs text-muted underline underline-offset-4 hover:text-foreground"
               >
                 {ex}
               </button>
@@ -109,9 +109,9 @@ function Plans() {
           <ul className="space-y-2">
             {plans.map((p) => (
               <li key={p.id}>
-                <Link href={`/plans/${p.id}`} className="block rounded-2xl border border-border bg-card p-4 hover:border-brand">
+                <Link href={`/plans/${p.id}`} className="block border-b border-line py-4 hover:text-brand">
                   <p className="font-semibold">
-                    {p.kind === "path" ? "🧭 " : "✂️ "}
+                    {p.kind === "path" ? "" : ""}
                     {p.goal}
                   </p>
                   <p className="text-sm text-muted">

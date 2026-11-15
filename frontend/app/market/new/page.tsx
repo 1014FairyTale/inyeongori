@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Listing } from "@/lib/api";
 import { RequireLogin } from "@/components/RequireLogin";
 import { Button, Card, ErrorBox, Field, TextArea } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 function NewListingForm() {
   const router = useRouter();
@@ -59,7 +60,7 @@ function NewListingForm() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold">재능 등록</h1>
+      <h1 className="text-3xl font-black">재능 등록</h1>
       <Card>
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <Field label="제목" placeholder="예: 테트리스 기초 알려 드려요" value={form.title} onChange={set("title")} maxLength={80} />
@@ -75,7 +76,7 @@ function NewListingForm() {
             <select
               value={form.category}
               onChange={set("category")}
-              className="w-full rounded-xl border border-border bg-card px-3.5 py-3 text-base outline-none focus:border-brand"
+              className="w-full border border-line px-3.5 py-3 text-base outline-none focus:border-brand"
             >
               <option value="">골라 주세요</option>
               {categories.map((c) => (
@@ -118,7 +119,7 @@ function NewListingForm() {
 export default function NewListingPage() {
   return (
     <RequireLogin>
-      <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+      <Suspense fallback={<PageLoading />}>
         <NewListingForm />
       </Suspense>
     </RequireLogin>

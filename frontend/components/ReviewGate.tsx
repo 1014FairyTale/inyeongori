@@ -22,22 +22,22 @@ export function ReviewGate({ children }: { children: ReactNode }) {
 
   if (status.blocked && !onReviewPage) {
     return (
-      <div className="space-y-5 py-6">
-        <div className="space-y-2 text-center">
-          <p className="text-4xl">✍️</p>
-          <h1 className="text-xl font-bold">후기를 남겨야 다시 이용할 수 있어요</h1>
+      <div className="space-y-6 py-6">
+        <div className="space-y-2 border-t border-foreground pt-4">
+          <p className="text-xs font-bold text-danger">이용 제한</p>
+          <h1 className="text-2xl font-black">후기를 남겨야 다시 이용할 수 있어요</h1>
           <p className="text-sm text-muted">
             거래가 끝나고 7일이 지나도록 후기를 남기지 않은 거래가 있어요.
             <br />
             후기를 쓰면 바로 다시 이용할 수 있어요.
           </p>
         </div>
-        <ul className="space-y-2">
+        <ul className="border-t border-line">
           {overdue.map((d) => (
             <li key={d.exchange_id}>
               <Link
                 href={`/exchanges/${d.exchange_id}`}
-                className="flex items-center justify-between rounded-2xl border border-danger/40 bg-card p-4"
+                className="flex items-center justify-between gap-3 border-b border-line py-4"
               >
                 <span className="min-w-0">
                   <span className="block truncate font-semibold">{d.listing_title ?? "재능 교환"}</span>
@@ -45,12 +45,12 @@ export function ReviewGate({ children }: { children: ReactNode }) {
                     {d.provider_nickname}님 · 마감 {formatDate(d.due_at)}
                   </span>
                 </span>
-                <span className="shrink-0 rounded-full bg-brand px-3 py-1.5 text-sm font-semibold text-white">후기 쓰기</span>
+                <span className="shrink-0 text-sm font-bold text-brand underline underline-offset-4">후기 쓰기</span>
               </Link>
             </li>
           ))}
         </ul>
-        <p className="text-center text-xs text-muted">기한이 지난 후기는 10% 환급 대상이 아니에요.</p>
+        <p className="text-xs text-muted">기한이 지난 후기는 10% 환급 대상이 아니에요.</p>
       </div>
     );
   }
@@ -61,13 +61,13 @@ export function ReviewGate({ children }: { children: ReactNode }) {
       {next && !onReviewPage && (
         <Link
           href={`/exchanges/${next.exchange_id}`}
-          className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm"
+          className="mb-6 flex items-center justify-between gap-3 border-y border-foreground py-3 text-sm"
         >
           <span className="min-w-0">
-            ✍️ <b className="truncate">&lsquo;{next.listing_title ?? "재능 교환"}&rsquo;</b> 후기를 남겨 주세요
+            <b className="truncate">&lsquo;{next.listing_title ?? "재능 교환"}&rsquo;</b> 후기를 남겨 주세요
             <span className="block text-xs text-muted">기한 안에 성의 있게 쓰면 거래 토큰의 10%를 돌려받아요</span>
           </span>
-          <span className="shrink-0 rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">{dueLabel(next.due_at)}</span>
+          <span className="shrink-0 text-sm font-bold text-brand">{dueLabel(next.due_at)}</span>
         </Link>
       )}
       {children}

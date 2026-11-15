@@ -10,6 +10,7 @@ import { AiBadge } from "@/components/AiBadge";
 import { TermsForm } from "@/components/TermsForm";
 import { TokenAmount } from "@/components/TokenAmount";
 import { Button, Card, ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 function ListingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ function ListingDetail() {
   }, [id]);
 
   if (loadError) return <ErrorBox message={loadError} />;
-  if (!listing) return <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!listing) return <PageLoading />;
 
   const isMine = me?.user.id === listing.provider.id;
   const lacking = me ? me.wallet.available < listing.price_tokens : false;
@@ -67,11 +68,11 @@ function ListingDetail() {
   return (
     <div className="space-y-5">
       <Link href="/market" className="text-sm text-muted">
-        ← 마켓으로
+        마켓으로
       </Link>
       <Card className="space-y-3">
         <p className="text-sm font-medium text-brand">{listing.category}</p>
-        <h1 className="text-2xl font-bold">{listing.title}</h1>
+        <h1 className="text-3xl font-black">{listing.title}</h1>
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <TokenAmount amount={listing.price_tokens} className="text-base" />
           {listing.est_minutes && <span>예상 {listing.est_minutes}분</span>}
@@ -99,12 +100,12 @@ function ListingDetail() {
       ) : !me ? (
         <Link
           href={`/login?next=${encodeURIComponent(`/market/${listing.id}`)}`}
-          className="block rounded-xl bg-brand px-4 py-3 text-center font-semibold text-white"
+          className="block bg-brand px-4 py-3 text-center font-bold text-white hover:bg-foreground"
         >
           로그인하고 요청하기
         </Link>
       ) : listing.status === "paused" ? (
-        <Card className="text-center text-muted">지금은 요청을 받지 않는 재능이에요.</Card>
+        <Card className="text-muted">지금은 요청을 받지 않는 재능이에요.</Card>
       ) : requesting ? (
         <Card className="space-y-3">
           <h2 className="text-lg font-bold">요청서 쓰기</h2>
@@ -150,7 +151,7 @@ function ListingDetail() {
 
 export default function ListingDetailPage() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-muted">불러오는 중…</p>}>
+    <Suspense fallback={<PageLoading />}>
       <ListingDetail />
     </Suspense>
   );

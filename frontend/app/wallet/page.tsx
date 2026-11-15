@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { api, ApiError, type LedgerItem, type Page, type WalletBrief } from "@/lib/api";
 import { formatDate, signed } from "@/lib/format";
 import { RequireLogin } from "@/components/RequireLogin";
-import { Card, ErrorBox } from "@/components/ui";
+import { ErrorBox } from "@/components/ui";
+import { PageLoading } from "@/components/Logo";
 
 function Wallet() {
   const [wallet, setWallet] = useState<WalletBrief | null>(null);
@@ -22,34 +23,35 @@ function Wallet() {
   }, []);
 
   if (error) return <ErrorBox message={error} />;
-  if (!wallet || !ledger) return <p className="py-10 text-center text-muted">불러오는 중…</p>;
+  if (!wallet || !ledger) return <PageLoading />;
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold">토큰 지갑</h1>
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="space-y-1">
-          <p className="text-sm text-muted">사용 가능</p>
-          <p className="text-3xl font-extrabold text-brand">🪙 {wallet.available.toLocaleString("ko-KR")}</p>
-        </Card>
-        <Card className="space-y-1">
-          <p className="text-sm text-muted">보류 중</p>
-          <p className="text-3xl font-extrabold text-muted">{wallet.escrow.toLocaleString("ko-KR")}</p>
-          <p className="text-xs text-muted">진행 중인 거래에 묶인 토큰</p>
-        </Card>
-      </div>
+      <h1 className="text-3xl font-black">토큰 지갑</h1>
+      <section className="border-t border-foreground pt-4">
+        <p className="text-sm text-muted">사용 가능</p>
+        <p className="text-6xl font-black tracking-tight text-brand">
+          {wallet.available.toLocaleString("ko-KR")}
+          <span className="ml-2 text-lg font-bold text-foreground">토큰</span>
+        </p>
+        <p className="mt-3 border-t border-line pt-3 text-sm">
+          <span className="text-muted">보류 중 </span>
+          <b>{wallet.escrow.toLocaleString("ko-KR")} 토큰</b>
+          <span className="text-muted"> · 진행 중인 거래에 묶인 토큰이에요</span>
+        </p>
+      </section>
 
       <section className="space-y-2">
-        <h2 className="font-bold">거래 내역</h2>
+        <h2 className="border-b border-foreground pb-2 font-bold">거래 내역</h2>
         {ledger.items.length === 0 ? (
           <p className="text-muted">아직 내역이 없어요.</p>
         ) : (
-          <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+          <ul className="divide-y divide-line border-b border-line">
             {ledger.items.map((i) => {
               const main = i.available_delta !== 0 ? i.available_delta : i.escrow_delta;
               const escrowOnly = i.available_delta === 0;
               return (
-                <li key={i.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <li key={i.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
                     <p className="font-medium">{i.label}</p>
                     <p className="truncate text-xs text-muted">
@@ -63,7 +65,7 @@ function Wallet() {
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className={`font-bold ${escrowOnly ? "text-muted" : main > 0 ? "text-green-700" : "text-danger"}`}>
+                    <p className={`font-bold ${escrowOnly ? "text-muted" : main > 0 ? "text-success" : "text-danger"}`}>
                       {signed(main)}
                     </p>
                     {escrowOnly && <p className="text-xs text-muted">보류에서</p>}

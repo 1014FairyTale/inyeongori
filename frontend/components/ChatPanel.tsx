@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { api, ApiError, type ChatMessage, type ChatResponse, type ChatState } from "@/lib/api";
+import { LogoSpinner } from "@/components/Logo";
 
 const POLL_MS = 3000; // 새 메시지 확인 간격 (결정 사항: 폴링)
 
@@ -112,28 +113,29 @@ export function ChatPanel({
   const lastMine = [...messages].reverse().find((m) => m.mine);
 
   return (
-    <section id="chat" className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="font-bold">💬 {counterpartName}님과 대화</h2>
+    <section id="chat" className="border-t border-foreground">
+      <div className="border-b border-line py-3">
+        <h2 className="font-bold">{counterpartName}님과 대화</h2>
         <p className="text-xs text-muted">
           {state === "open" ? "일정, 장소·온라인 도구 같은 진행 방식을 함께 정해 보세요" : "취소된 거래의 대화 기록이에요"}
         </p>
       </div>
 
-      <div ref={listRef} className="max-h-96 min-h-48 space-y-2 overflow-y-auto bg-background px-3 py-3" aria-live="polite">
-        {messages.length === 0 && <p className="py-10 text-center text-sm text-muted">불러오는 중…</p>}
+      <div ref={listRef} className="max-h-96 min-h-48 space-y-3 overflow-y-auto py-4" aria-live="polite">
+        {messages.length === 0 && (
+          <div className="flex justify-center py-10">
+            <LogoSpinner size={40} />
+          </div>
+        )}
         {messages.map((m) =>
           m.kind === "system" ? (
-            <p key={m.id} className="mx-auto max-w-[90%] rounded-xl bg-brand-soft px-3 py-2 text-center text-xs text-brand">
+            <p key={m.id} className="border-y border-line py-1.5 text-center text-xs text-muted">
               {m.body}
             </p>
           ) : (
-            <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
-              <div
-                className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm ${
-                  m.mine ? "rounded-br-sm bg-brand text-white" : "rounded-bl-sm border border-border bg-card"
-                }`}
-              >
+            <div key={m.id} className={`flex flex-col ${m.mine ?"items-end":"items-start"}`}>
+              <span className={`text-[11px] font-bold ${m.mine ? "text-brand" : "text-foreground"}`}>{m.mine ? "나" : counterpartName}</span>
+              <div className={`max-w-[80%] whitespace-pre-wrap break-words text-sm ${m.mine ? "text-right" : ""}`}>
                 {m.body}
               </div>
               <span className="mt-0.5 text-[11px] text-muted">
@@ -146,7 +148,7 @@ export function ChatPanel({
       </div>
 
       {state === "open" ? (
-        <form onSubmit={send} className="flex items-end gap-2 border-t border-border p-3">
+        <form onSubmit={send} className="flex items-end gap-2 border-t border-line py-3">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -155,20 +157,20 @@ export function ChatPanel({
             maxLength={1000}
             placeholder="예: 토요일 오후 2시에 줌으로 괜찮을까요?"
             aria-label="메시지 입력"
-            className="max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-base outline-none focus:border-brand"
+            className="max-h-32 min-h-11 flex-1 resize-none border border-line bg-transparent px-3 py-2.5 text-base outline-none focus:border-foreground"
           />
           <button
             type="submit"
             disabled={sending || !text.trim()}
-            className="h-11 shrink-0 rounded-xl bg-brand px-4 font-semibold text-white disabled:opacity-40"
+            className="h-11 shrink-0 bg-brand px-4 font-bold text-white hover:bg-foreground disabled:opacity-40"
           >
             보내기
           </button>
         </form>
       ) : (
-        <p className="border-t border-border px-4 py-3 text-center text-sm text-muted">취소된 거래라 메시지를 보낼 수 없어요.</p>
+        <p className="border-t border-line py-3 text-sm text-muted">취소된 거래라 메시지를 보낼 수 없어요.</p>
       )}
-      {error && <p className="px-4 pb-3 text-sm text-danger">{error}</p>}
+      {error && <p className="pb-3 text-sm text-danger">{error}</p>}
     </section>
   );
 }
