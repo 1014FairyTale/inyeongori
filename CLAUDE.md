@@ -121,6 +121,8 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 배포는 `EMBEDDING_PROVIDER=gemini` + `gemini-embedding-001`(1024), 로컬은 bge-m3. 모델이 바뀌면 서버 시작 시 backfill이 다시 임베딩한다.
 
 ## 시드·데모
+- 대상은 대학생 전용이 아닌 누구나. 화면 문구·AI 프롬프트·시드에 학생·학교·캠퍼스 표현을 쓰지 않는다. 학교·전공 필드는 화면에서 뺐다 (DB 컬럼은 남김)
+- 시연 영상 `/demo` (`app/demo`, 파일 `frontend/public/demo/*.mp4`). 포스터 QR이 이 주소를 가리키니 경로를 바꾸지 말 것
 - `backend/seed/data.py`(가상 인물), `seed.py`(실제 서비스 함수로 생성, 후기 분석은 SeedLLM으로 고정 점수)
 - 데모 대본 `docs/demo-scenario.md`, 배포 가이드 `docs/deploy.md`
 - 시드 전에 개발 DB에 사용자가 직접 만든 계정이 있으면 지우기 전에 확인받는다.
