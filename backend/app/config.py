@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     # 배포 환경: 서버 시작 시 DB에 사용자가 없으면 데모 시드를 넣어요
     seed_if_empty: bool = False
+    # 배포 환경: 이 값을 새 값으로 바꿔 배포하면 시작 시 한 번만 모든 데이터를 지우고 시드를 다시 넣어요
+    seed_reset_key: str = ""
 
     @field_validator("database_url", "test_database_url")
     @classmethod

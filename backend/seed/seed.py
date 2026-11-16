@@ -30,7 +30,7 @@ from app.services import auth, exchange_flow, reviews
 from app.services.discovery import embed_talent
 from app.services.embeddings import embed_listing
 from app.services.ledger import ensure_system_accounts
-from seed.data import COMPLETED, DEMO_REQUESTER, IN_PROGRESS, STUDENTS
+from seed.data import COMPLETED, DEMO_REQUESTER, IN_PROGRESS, PEOPLE
 
 DEFAULT_PASSWORD = "demo1234!"
 TABLES = (
@@ -64,8 +64,8 @@ def reset(db: Session) -> None:
     db.commit()
 
 
-def make_user(db: Session, password: str, nick: str, handle: str, school: str, major: str, bio: str) -> User:
-    user = auth.signup(db, SignupRequest(email=email(handle), password=password, nickname=nick, school=school, major=major))
+def make_user(db: Session, password: str, nick: str, handle: str, bio: str) -> User:
+    user = auth.signup(db, SignupRequest(email=email(handle), password=password, nickname=nick))
     user.bio = bio
     user.tutorial_seen_at = datetime.now(UTC)  # 시드 계정은 이용 가이드를 이미 본 것으로 (시연 중 가이드가 뜨지 않게)
     return user
@@ -76,8 +76,8 @@ def run(db: Session, password: str) -> dict[str, int]:
     users: dict[str, User] = {}
     listings: dict[str, Listing] = {}
 
-    for nick, handle, school, major, bio, talents, items in STUDENTS:
-        u = make_user(db, password, nick, handle, school, major, bio)
+    for nick, handle, bio, talents, items in PEOPLE:
+        u = make_user(db, password, nick, handle, bio)
         users[handle] = u
         for name, cat, desc, by_ai in talents:
             t = UserTalent(
@@ -96,10 +96,10 @@ def run(db: Session, password: str) -> dict[str, int]:
             db.flush()
             embed_listing(listing)
             listings[title] = listing
-    nick, handle, school, major, bio = DEMO_REQUESTER
-    users[handle] = make_user(db, password, nick, handle, school, major, bio)
+    nick, handle, bio = DEMO_REQUESTER
+    users[handle] = make_user(db, password, nick, handle, bio)
     db.commit()
-    print(f"  학생 {len(STUDENTS)}명 + 데모 계정 1명, 상품 {len(listings)}개")
+    print(f"  사람 {len(PEOPLE)}명 + 데모 계정 1명, 상품 {len(listings)}개")
 
     original_get_llm = ai.structured.get_llm
     llm = SeedLLM(original_get_llm)
@@ -144,6 +144,27 @@ def seed_if_empty() -> bool:
         if db.query(User).filter(User.is_system.is_(False)).first() is not None:
             return False
         run(db, os.environ.get("SEED_PASSWORD") or DEFAULT_PASSWORD)
+    return True
+
+
+def reset_once(key: str) -> bool:
+    """배포 환경에서 시드를 '한 번만' 다시 넣어요 (SEED_RESET_KEY).
+    키가 지난번에 적용한 값과 다를 때만 모든 데이터를 지우고 새로 넣고, 적용한 키를 app_flags에 남겨요.
+    그래서 서버가 다시 켜져도 같은 키로는 또 지우지 않아요. 다시 하고 싶으면 키를 새 값으로 바꾸면 돼요."""
+    with SessionLocal() as db:
+        applied = db.execute(text("SELECT value FROM app_flags WHERE key = 'seed_reset'")).scalar()
+        if applied == key:
+            return False
+        db.execute(text(f"TRUNCATE {TABLES} RESTART IDENTITY CASCADE"))
+        run(db, os.environ.get("SEED_PASSWORD") or DEFAULT_PASSWORD)
+        db.execute(
+            text(
+                "INSERT INTO app_flags (key, value) VALUES ('seed_reset', :v) "
+                "ON CONFLICT (key) DO UPDATE SET value = :v, updated_at = now()"
+            ),
+            {"v": key},
+        )
+        db.commit()
     return True
 
 
