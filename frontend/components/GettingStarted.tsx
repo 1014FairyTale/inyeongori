@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 const STEPS: Record<StepKey, { title: string; desc: string; href: string; cta: string }> = {
   discover: { title: "AI로 내 재능 찾기", desc: "경험을 적으면 AI가 재능 후보를 찾아 줘요", href: "/onboarding", cta: "찾기" },
   list: { title: "내 재능을 마켓에 올리기", desc: "가격은 직접 정해요. 요청을 받으면 토큰을 벌어요", href: "/market/new", cta: "올리기" },
-  request: { title: "필요한 도움 요청하기", desc: "찾기에서 맞는 학생을 추천받아요", href: "/match", cta: "찾아보기" },
+  request: { title: "필요한 도움 요청하기", desc: "찾기에서 맞는 사람을 추천받아요", href: "/match", cta: "찾아보기" },
   chat: { title: "수락된 거래에서 대화하기", desc: "채팅으로 일정과 진행 방식을 정해요", href: "/exchanges", cta: "거래 보기" },
   review: { title: "완료 후 후기 남기기", desc: "7일 안에 성의 있게 쓰면 10%를 돌려받아요", href: "/exchanges", cta: "거래 보기" },
 };

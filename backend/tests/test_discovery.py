@@ -15,9 +15,9 @@ from app.models import UserTalent
 from tests.conftest import Actor
 
 PAYLOAD = {
-    "intro_text": "저는 딱히 재능이 없는 평범한 학생이에요. 동아리 총무를 1년 했어요.",
+    "intro_text": "저는 딱히 재능이 없는 평범한 회사원이에요. 모임 총무를 1년 했어요.",
     "answers": {
-        "recent_roles": "동아리 총무, MT 준비도 제가 다 했어요",
+        "recent_roles": "모임 총무, 여행 준비도 제가 다 했어요",
         "friends_ask": "친구들이 PPT 좀 봐 달라고 해요",
         "confident_tools": "엑셀, 노션은 자신 있어요",
     },

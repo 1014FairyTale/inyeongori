@@ -15,7 +15,8 @@ export function ReviewGate({ children }: { children: ReactNode }) {
   const { me } = useAuth();
   const pathname = usePathname();
   const status = me?.review_status;
-  if (!status || status.due.length === 0) return <>{children}</>;
+  // 시연 영상(포스터 QR)은 누구에게나 열어 둬요
+  if (!status || status.due.length === 0 || pathname === "/demo") return <>{children}</>;
 
   const overdue = status.due.filter((d) => d.overdue);
   const onReviewPage = status.due.some((d) => pathname === `/exchanges/${d.exchange_id}`);

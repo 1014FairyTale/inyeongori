@@ -18,7 +18,7 @@ class TalentCandidateAI(BaseModel):
         min_length=5, max_length=120, description="사용자가 맞는지 확인할 수 있는 예/아니오 질문 (존댓말)"
     )
     description: str = Field(
-        min_length=5, max_length=200, description="다른 학생에게 이 재능으로 해 줄 수 있는 도움을 한 문장으로"
+        min_length=5, max_length=200, description="다른 사람에게 이 재능으로 해 줄 수 있는 도움을 한 문장으로"
     )
 
 
@@ -97,7 +97,7 @@ class ReviewAnalysisAI(BaseModel):
     review_quality: int = Field(
         ge=0,
         le=100,
-        description="후기 자체의 성의 점수 0~100. 제공자 평가(만족·불만)와 상관없이, 다른 학생에게 도움이 될 만큼 구체적이고 성실하게 썼는지",
+        description="후기 자체의 성의 점수 0~100. 제공자 평가(만족·불만)와 상관없이, 다른 사람에게 도움이 될 만큼 구체적이고 성실하게 썼는지",
     )
     review_quality_reason: str = Field(max_length=120, description="후기 성의 점수의 근거 한 문장 (존댓말)")
 

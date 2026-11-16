@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
@@ -37,7 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <footer className="mx-auto w-full max-w-2xl px-4 pb-24 pt-6 text-xs text-muted">
             <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-line pt-4">
-              <span>인연고리 · 재능 교류 플랫폼</span>
+              <span>
+                인연고리 · 재능 교류 플랫폼 ·{" "}
+                <Link href="/demo" className="underline underline-offset-4 hover:text-foreground">
+                  시연 영상
+                </Link>
+              </span>
               <span>We:Write · TEAM 14</span>
             </div>
           </footer>

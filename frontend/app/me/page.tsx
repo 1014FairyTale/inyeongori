@@ -60,9 +60,6 @@ function Profile() {
     <div className="space-y-6">
       <Card className="space-y-1">
         <h1 className="text-3xl font-black">{me.user.nickname}</h1>
-        <p className="text-sm text-muted">
-          {[me.user.school, me.user.major].filter(Boolean).join(" · ") || "학교·전공 미입력"}
-        </p>
         {me.user.bio && <p className="pt-2 text-sm">{me.user.bio}</p>}
       </Card>
 

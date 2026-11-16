@@ -151,7 +151,7 @@ def _ai_reasons(query: str, results: list[MatchCandidate]) -> dict[int, str | No
     for i, c in enumerate(results):
         parts = [f"[{i}] {c.user.nickname}"]
         if c.user.major:
-            parts.append(f"전공 {c.user.major}")
+            parts.append(f"분야 {c.user.major}")
         if c.matched_talent:
             parts.append(f"확정 재능: {c.matched_talent}")
         if c.listing:

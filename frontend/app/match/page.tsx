@@ -11,7 +11,7 @@ import { TokenAmount } from "@/components/TokenAmount";
 import { Button, Card, ErrorBox, TextArea } from "@/components/ui";
 import { PageLoading } from "@/components/Logo";
 
-const EXAMPLES = ["다음 주 발표 PPT 구성을 봐 줄 사람", "동아리 회비 정산을 엑셀로 하고 싶어요", "노트북이 느려졌는데 봐 줄 수 있는 분"];
+const EXAMPLES = ["다음 주 발표 PPT 구성을 봐 줄 사람", "모임 회비 정산을 엑셀로 하고 싶어요", "노트북이 느려졌는데 봐 줄 수 있는 분"];
 const LOADING = ["요청을 이해하고 있어요…", "비슷한 재능을 가진 사람을 찾고 있어요…", "추천 이유를 정리하고 있어요…"];
 
 function CandidateCard({ c, rank }: { c: MatchCandidate; rank: number }) {
@@ -24,8 +24,7 @@ function CandidateCard({ c, rank }: { c: MatchCandidate; rank: number }) {
             {c.user.nickname}
           </Link>
           <p className="text-xs text-muted">
-            {[c.user.school, c.user.major].filter(Boolean).join(" · ")}
-            {c.completed_count > 0 && ` · 완료 ${c.completed_count}회`}
+            {c.completed_count > 0 ? `완료 ${c.completed_count}회` : "새로 온 분"}
             {c.rating_avg != null && c.rating_count > 0 && ` · ${c.rating_avg.toFixed(1)}`}
           </p>
         </div>
@@ -97,7 +96,7 @@ function Match() {
     <div className="space-y-5">
       <div className="space-y-1">
         <h1 className="text-3xl font-black">도와줄 사람 찾기</h1>
-        <p className="text-muted">필요한 도움을 편하게 적으면, AI가 재능이 맞는 학생을 추천해요.</p>
+        <p className="text-muted">필요한 도움을 편하게 적으면, AI가 재능이 맞는 사람을 추천해요.</p>
       </div>
       <Card>
         <form onSubmit={onSubmit} className="space-y-3" noValidate>
@@ -129,7 +128,7 @@ function Match() {
         <section className="space-y-3">
           {result.candidates.length === 0 ? (
             <Card className="space-y-2 text-muted">
-              <p>아직 이 요청에 맞는 재능을 가진 학생이 없어요.</p>
+              <p>아직 이 요청에 맞는 재능을 가진 사람이 없어요.</p>
               <p className="text-sm">다르게 표현해 보거나, 마켓을 둘러보세요.</p>
               <Link href="/market" className="font-semibold text-brand">
                 마켓 둘러보기

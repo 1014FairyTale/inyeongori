@@ -13,14 +13,14 @@ import { PageLoading } from "@/components/Logo";
 const LOADING_MESSAGES = [
   "적어 주신 경험을 꼼꼼히 읽고 있어요…",
   "경험 속에 숨은 능력을 찾고 있어요…",
-  "다른 학생에게 도움이 될 재능을 고르고 있어요…",
+  "다른 사람에게 도움이 될 재능을 고르고 있어요…",
   "확인 질문을 만들고 있어요…",
 ];
 
 const EXAMPLE = {
-  intro_text: "저는 딱히 잘하는 게 없는 평범한 경영학과 2학년이에요. 동아리 총무를 1년 했어요.",
-  recent_roles: "동아리 총무, MT 준비도 제가 다 했어요",
-  friends_ask: "친구들이 과제 PPT 좀 봐 달라고 해요",
+  intro_text: "저는 딱히 잘하는 게 없는 평범한 회사원이에요. 동네 독서 모임 총무를 1년 했어요.",
+  recent_roles: "모임 총무, 1박 2일 여행 준비도 제가 다 했어요",
+  friends_ask: "주변에서 발표 PPT 좀 봐 달라고 해요",
   confident_tools: "엑셀, 노션은 자신 있어요",
 };
 
@@ -97,14 +97,14 @@ function Onboarding() {
           <form onSubmit={run} className="space-y-4" noValidate>
             <TextArea
               label="자기소개"
-              placeholder="예: 경영학과 2학년이에요. 동아리 총무를 1년 했어요."
+              placeholder="예: 회사원이에요. 동네 모임 총무를 1년 했어요."
               value={form.intro_text}
               onChange={set("intro_text")}
               maxLength={2000}
             />
             <Field
               label="최근에 맡았던 역할은요?"
-              placeholder="예: 동아리 총무, 조장, 과외 선생님"
+              placeholder="예: 모임 총무, 팀 프로젝트 리더, 과외 선생님"
               value={form.recent_roles}
               onChange={set("recent_roles")}
               maxLength={500}
@@ -170,7 +170,7 @@ function Onboarding() {
         </p>
         {kept.length > 0 ? (
           <>
-            <p className="text-sm text-muted">확정한 재능을 마켓에 올리면 다른 학생이 토큰으로 요청할 수 있어요.</p>
+            <p className="text-sm text-muted">확정한 재능을 마켓에 올리면 다른 사람이 토큰으로 요청할 수 있어요.</p>
             <Link
               href={`/market/new?${new URLSearchParams({
                 title: kept[0].final_name ?? kept[0].name,

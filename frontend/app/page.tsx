@@ -7,21 +7,22 @@ import { LogoMark } from "@/components/Logo";
 import { GettingStarted } from "@/components/GettingStarted";
 
 const HOW = [
-  { title: "경험을 편하게 적어요", body: "동아리 총무, 과외, 행사 준비처럼 사소해 보이는 경험도 괜찮아요." },
+  { title: "경험을 편하게 적어요", body: "모임 총무, 집안 정리, 행사 준비처럼 사소해 보이는 경험도 괜찮아요." },
   { title: "AI가 숨은 재능을 찾아 줘요", body: "근거와 확인 질문을 함께 보여 드려요. 맞는 것만 골라 확정해요." },
   { title: "토큰으로 재능을 나눠요", body: "현금 없이, 가입하면 받는 100토큰으로 바로 도움을 주고받아요." },
 ];
 
 const MORE = [
-  { href: "/match", title: "도와줄 사람 찾기", body: "필요한 도움을 적으면 AI가 재능이 맞는 학생을 추천해요" },
+  { href: "/match", title: "도와줄 사람 찾기", body: "필요한 도움을 적으면 AI가 재능이 맞는 사람을 추천해요" },
   { href: "/plans", title: "큰 목표를 작은 부탁으로", body: "공모전 준비처럼 큰 목표를 20~30분짜리 도움으로 나눠요" },
-  { href: "/market", title: "재능 마켓 둘러보기", body: "다른 학생들이 올린 재능을 카테고리별로 살펴봐요" },
+  { href: "/market", title: "재능 마켓 둘러보기", body: "다른 사람들이 올린 재능을 카테고리별로 살펴봐요" },
+  { href: "/demo", title: "시연 영상 보기", body: "재능 찾기부터 거래, 후기까지 영상으로 먼저 둘러봐요" },
 ];
 
 export default function Home() {
   const { me } = useAuth();
   const cta = me ? "/onboarding" : "/signup?next=/onboarding";
-  const gated = (href: string) => (me || href === "/market" ? href : `/signup?next=${href}`);
+  const gated = (href: string) => (me || href === "/market" || href === "/demo" ? href : `/signup?next=${href}`);
 
   return (
     <div className="space-y-14">
@@ -39,7 +40,7 @@ export default function Home() {
           토큰으로 친구들과 나눠요
         </p>
         <p className="border-l-0 text-muted">
-          &ldquo;저는 재능이 없어요&rdquo;라고 생각했다면, 지금까지 해 온 일을 적어 보세요. 거기에 다른 학생이 필요로 하는 재능이 있어요.
+          &ldquo;저는 재능이 없어요&rdquo;라고 생각했다면, 지금까지 해 온 일을 적어 보세요. 거기에 다른 사람이 필요로 하는 재능이 있어요.
         </p>
         <div className="space-y-3 pt-2">
           <Link href={cta} className="block bg-brand px-6 py-4 text-center text-lg font-bold text-white hover:bg-foreground">

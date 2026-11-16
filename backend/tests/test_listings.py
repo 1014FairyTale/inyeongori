@@ -6,7 +6,7 @@ from tests.conftest import Actor
 def test_create_list_search_filter_and_detail(client: TestClient) -> None:
     a = Actor(client, "a@example.com", "엑셀장인")
     b = Actor(client, "b@example.com", "발표왕")
-    a.post("/listings", {"title": "엑셀 정산표 만들어 드려요", "description": "동아리 회비 정산 템플릿", "category": "엑셀·문서", "price_tokens": 30})
+    a.post("/listings", {"title": "엑셀 정산표 만들어 드려요", "description": "모임 회비 정산 템플릿", "category": "엑셀·문서", "price_tokens": 30})
     b.post("/listings", {"title": "PPT 구성 피드백", "description": "10장 이내 발표 자료 구성 봐 드려요", "category": "발표·PPT", "price_tokens": 40, "est_minutes": 30})
 
     page = client.get("/api/v1/listings").json()

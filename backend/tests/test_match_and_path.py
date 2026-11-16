@@ -13,8 +13,8 @@ from tests.test_discovery import FakeLLM, _use_llm
 
 def _people(client: TestClient) -> dict[str, Actor]:
     excel = Actor(client, "excel@example.com", "엑셀장인")
-    excel.post("/users/me/talents", {"name": "엑셀 회비 정산", "category": "엑셀·문서", "description": "동아리 회비 정산표를 엑셀로 만들어 드려요"})
-    excel.post("/listings", {"title": "엑셀 회비 정산표 만들어 드려요", "description": "동아리 회비 정산 엑셀 템플릿", "category": "엑셀·문서", "price_tokens": 30})
+    excel.post("/users/me/talents", {"name": "엑셀 회비 정산", "category": "엑셀·문서", "description": "모임 회비 정산표를 엑셀로 만들어 드려요"})
+    excel.post("/listings", {"title": "엑셀 회비 정산표 만들어 드려요", "description": "모임 회비 정산 엑셀 템플릿", "category": "엑셀·문서", "price_tokens": 30})
 
     ppt = Actor(client, "ppt@example.com", "발표왕")
     ppt.post("/users/me/talents", {"name": "발표 PPT 구성 피드백", "category": "발표·PPT", "description": "발표 자료 흐름을 봐 드려요"})
@@ -27,7 +27,7 @@ def _people(client: TestClient) -> dict[str, Actor]:
 def test_match_ranks_relevant_person_first_with_reason(client: TestClient) -> None:
     p = _people(client)
     me = Actor(client, "me@example.com", "새내기")
-    r = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"})
+    r = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"})
     assert r.status_code == 200, r.text
     cands = r.json()["candidates"]
     assert cands, "후보가 있어야 해요"
@@ -42,7 +42,7 @@ def test_match_ranks_relevant_person_first_with_reason(client: TestClient) -> No
 
 def test_match_excludes_myself(client: TestClient) -> None:
     p = _people(client)
-    r = p["excel"].post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"})
+    r = p["excel"].post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"})
     assert all(c["user"]["id"] != p["excel"].id for c in r.json()["candidates"])
 
 
@@ -82,16 +82,16 @@ def test_ai_reasons_are_used_and_fall_back_on_failure(client: TestClient, monkey
     me = Actor(client, "me@example.com", "새내기")
     _use_llm(
         monkeypatch,
-        FakeLLM([json.dumps({"reasons": [{"candidate_index": 0, "relevant": True, "reason": "동아리 회비 정산 경험이 있어 바로 도와줄 수 있어요"}]}, ensure_ascii=False)]),
+        FakeLLM([json.dumps({"reasons": [{"candidate_index": 0, "relevant": True, "reason": "모임 회비 정산 경험이 있어 바로 도와줄 수 있어요"}]}, ensure_ascii=False)]),
     )
-    cands = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    cands = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
     assert cands[0]["reason_source"] == "ai"
-    assert cands[0]["reason"].startswith("동아리 회비 정산 경험")
+    assert cands[0]["reason"].startswith("모임 회비 정산 경험")
     if len(cands) > 1:
         assert cands[1]["reason_source"] == "template"  # AI가 빠뜨린 후보는 템플릿
 
     _use_llm(monkeypatch, FakeLLM([AIError("x"), AIError("x")]))
-    cands = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    cands = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
     assert cands and all(c["reason_source"] == "template" for c in cands)
 
 
@@ -111,7 +111,7 @@ def test_slow_ai_reasons_fall_back_to_template_within_deadline(client: TestClien
     _use_llm(monkeypatch, SlowLLM())  # type: ignore[arg-type]
     monkeypatch.setattr(matching, "MATCH_REASON_DEADLINE_S", 0.5)
     started = _time.monotonic()
-    cands = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    cands = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
     assert _time.monotonic() - started < 2.5
     assert cands and all(c["reason_source"] == "template" for c in cands)
 
@@ -119,11 +119,11 @@ def test_slow_ai_reasons_fall_back_to_template_within_deadline(client: TestClien
 def test_ai_can_drop_irrelevant_candidates(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     p = _people(client)
     me = Actor(client, "me@example.com", "새내기")
-    first = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    first = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
     assert first[0]["user"]["id"] == p["excel"].id
     reasons = [{"candidate_index": 0, "relevant": False, "reason": "관련 없는 재능이에요"}]
     _use_llm(monkeypatch, FakeLLM([json.dumps({"reasons": reasons}, ensure_ascii=False)]))
-    after = me.post("/match", {"query": "동아리 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
+    after = me.post("/match", {"query": "모임 회비 정산을 엑셀로 하고 싶어요"}).json()["candidates"]
     assert all(c["user"]["id"] != p["excel"].id for c in after)
 
 

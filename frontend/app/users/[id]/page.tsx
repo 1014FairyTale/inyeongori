@@ -36,8 +36,7 @@ function Profile() {
       <Card className="space-y-1">
         <h1 className="text-3xl font-black">{profile.user.nickname}</h1>
         <p className="text-sm text-muted">
-          {[profile.user.school, profile.user.major].filter(Boolean).join(" · ") || "학교·전공 미입력"}
-          {` · 완료 ${profile.completed_count}회`}
+          {`완료 ${profile.completed_count}회`}
           {profile.rating_avg != null && profile.rating_count > 0 && ` · ${profile.rating_avg.toFixed(1)} (${profile.rating_count})`}
         </p>
         {profile.bio && <p className="pt-2 text-sm">{profile.bio}</p>}

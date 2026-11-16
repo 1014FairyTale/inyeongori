@@ -28,7 +28,7 @@ def test_checklist_follows_real_actions(client: TestClient) -> None:
     provider = Actor(client, "p@example.com", "제공자")
     me = Actor(client, "me@example.com", "새내기")
 
-    me.post("/discovery/sessions", {"intro_text": "동아리 총무를 1년 했어요", "answers": {}})
+    me.post("/discovery/sessions", {"intro_text": "모임 총무를 1년 했어요", "answers": {}})
     cand = me.get("/discovery/sessions/latest").json()["candidates"][0]
     me.post(f"/discovery/candidates/{cand['id']}/decision", {"action": "accept"})
     assert _steps(me)["discover"] is True and _steps(me)["list"] is False

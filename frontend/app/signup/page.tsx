@@ -13,7 +13,7 @@ function SignupForm() {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"), "/onboarding");
 
-  const [form, setForm] = useState({ email: "", password: "", nickname: "", school: "", major: "" });
+  const [form, setForm] = useState({ email: "", password: "", nickname: "" });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -31,8 +31,6 @@ function SignupForm() {
         email: form.email,
         password: form.password,
         nickname: form.nickname,
-        school: form.school || undefined,
-        major: form.major || undefined,
       });
       router.push(`/guide?next=${encodeURIComponent(next)}`); // 처음 가입하면 이용 가이드부터 보여 줘요
     } catch (err) {
@@ -78,10 +76,6 @@ function SignupForm() {
             error={fieldErrors.password}
           />
           <Field label="닉네임" required maxLength={40} value={form.nickname} onChange={set("nickname")} error={fieldErrors.nickname} />
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="학교 (선택)" maxLength={80} value={form.school} onChange={set("school")} />
-            <Field label="전공 (선택)" maxLength={80} value={form.major} onChange={set("major")} />
-          </div>
           {error && <ErrorBox message={error} />}
           <Button type="submit" disabled={submitting}>
             {submitting ? "가입하는 중…" : "가입하고 100토큰 받기"}

@@ -9,7 +9,7 @@ BONUS_POOL_INITIAL_TOKENS = 100_000
 LISTING_MIN_PRICE = 1
 LISTING_MAX_PRICE = 500
 LISTING_CATEGORIES = [
-    "학업·과제",
+    "공부·학습",
     "발표·PPT",
     "디자인",
     "개발·IT",

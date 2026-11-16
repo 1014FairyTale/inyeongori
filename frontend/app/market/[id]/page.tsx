@@ -81,8 +81,6 @@ function ListingDetail() {
         <p className="whitespace-pre-wrap leading-relaxed">{listing.description}</p>
         <p className="text-sm text-muted">
           제공자 <b className="text-foreground">{listing.provider.nickname}</b>
-          {listing.provider.school && ` · ${listing.provider.school}`}
-          {listing.provider.major && ` ${listing.provider.major}`}
         </p>
       </Card>
 
