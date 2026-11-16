@@ -5,7 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.constants import REVIEW_DEADLINE_DAYS
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, token_predates_account
 from app.db import get_db
 from app.errors import AppError
 from app.models import User
@@ -23,9 +23,10 @@ def get_logged_in_user(
     """로그인만 확인해요. 이용이 막힌 사람도 통과 (내 정보, 밀린 후기 쓰기 등에만 사용)."""
     if cred is None:
         raise AppError("UNAUTHORIZED", "로그인이 필요해요", 401)
-    user_id = decode_access_token(cred.credentials)
-    user = db.get(User, user_id) if user_id is not None else None
-    if user is None or user.is_system:
+    claims = decode_access_token(cred.credentials)
+    user = db.get(User, claims.user_id) if claims is not None else None
+    # 계정보다 먼저 발급된 토큰은 다른 사람(초기화 전 같은 번호) 것이라 거부해요
+    if user is None or user.is_system or token_predates_account(claims, user.created_at):  # type: ignore[arg-type]
         raise AppError("UNAUTHORIZED", "로그인이 만료됐어요. 다시 로그인해 주세요", 401)
     return user
 

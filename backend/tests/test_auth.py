@@ -56,3 +56,35 @@ def test_validation_error_format(client: TestClient) -> None:
     assert err["code"] == "VALIDATION_ERROR"
     fields = {f["field"] for f in err["details"]["fields"]}
     assert {"email", "password", "nickname"} <= fields
+
+
+def test_token_issued_before_account_is_rejected(client: TestClient, db) -> None:  # noqa: ANN001
+    """DB를 초기화하면 사용자 번호가 다시 매겨져요. 예전 토큰이 같은 번호의 새 계정으로 로그인되면 안 돼요."""
+    from datetime import timedelta
+
+    from sqlalchemy import update
+
+    from app.models import User
+
+    body = signup(client, "old@example.com")
+    old_token = body["access_token"]
+    user_id = body["me"]["user"]["id"]
+    # 초기화 뒤 같은 번호로 새 계정이 1분 뒤에 만들어진 상황
+    db.execute(update(User).where(User.id == user_id).values(created_at=User.created_at + timedelta(minutes=1)))
+    db.commit()
+
+    r = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {old_token}"})
+    assert r.status_code == 401
+    assert r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_token_without_issued_at_is_rejected(client: TestClient) -> None:
+    import jwt
+
+    from app.config import get_settings
+
+    body = signup(client, "noiat@example.com")
+    s = get_settings()
+    forged = jwt.encode({"sub": str(body["me"]["user"]["id"]), "exp": 4102444800}, s.jwt_secret, algorithm=s.jwt_algorithm)
+    r = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {forged}"})
+    assert r.status_code == 401
