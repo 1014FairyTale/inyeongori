@@ -45,7 +45,7 @@ function CandidateCard({ c, rank }: { c: MatchCandidate; rank: number }) {
       <div className="flex flex-wrap items-center gap-4 text-sm">
         {c.listing ? (
           <Link href={`/market/${c.listing.id}`} className="inline-flex items-center gap-2 bg-brand px-3 py-2 font-bold text-white hover:bg-foreground">
-            {c.listing.title} 요청하기 <TokenAmount amount={c.listing.price_tokens} className="text-white" />
+            {c.listing.title} 요청하기 <TokenAmount amount={c.listing.price_tokens} inverse />
           </Link>
         ) : (
           <span className="text-muted">아직 올린 재능 상품이 없어요</span>
