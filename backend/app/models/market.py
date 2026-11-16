@@ -1,6 +1,6 @@
 """재능 마켓과 거래.
 
-거래 상태 흐름 (README 결정 사항 D6)
+거래 상태 흐름 (docs/decisions.md D6)
   requested ──(양측이 현재 합의서에 동의)──▶ accepted [요청자 토큰 보류]
   requested ──(제공자 거절)──▶ rejected / (요청자 철회)──▶ cancelled      [토큰 이동 없음]
   accepted ──(양측 완료 확인)──▶ completed [제공자에게 지급]

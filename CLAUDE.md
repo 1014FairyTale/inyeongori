@@ -1,21 +1,21 @@
 # 인연고리 — 작업 가이드 (Claude용)
 
-AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는 **재능 교류 플랫폼**. 해커톤 데모용 MVP.
+AI가 숨은 재능을 찾아 주고, 토큰으로 서로의 재능을 나누는 재능 교류 플랫폼. 해커톤 데모용 MVP.
 
 ## 작업 방식 (반드시 지킬 것)
-1. 단계별로 진행하고, 단계가 끝나면 **만든 것 / 실행 방법 / 확인 방법 / 남은 이슈**를 보고한 뒤 멈춘다.
-2. 기획에 없거나 애매한 결정은 선택지 2~3개와 장단점을 보여 주고 묻는다. 사소한 구현 디테일은 정하고 README "결정 사항"에 기록한다.
+1. 단계별로 진행하고, 단계가 끝나면 만든 것 / 실행 방법 / 확인 방법 / 남은 이슈를 보고한 뒤 멈춘다.
+2. 기획에 없거나 애매한 결정은 선택지 2~3개와 장단점을 보여 주고 묻는다. 사소한 구현 디테일은 정하고 `docs/decisions.md`에 기록한다.
 3. 비밀값은 `.env`로만 관리한다. 코드에 하드코딩 금지. `.env.example`을 같이 갱신한다.
 4. 모든 AI 기능은 `AI_MOCK=true`일 때 `backend/ai/mocks/<기능>.json` 고정 응답으로 동작해야 한다.
 5. 커밋은 기능 단위로 작게, 메시지는 한국어로.
 6. 화면 문구는 한국어, 친근한 존댓말("~해요"). AI 결과에는 항상 "AI 제안" 표시 + 사용자가 수정할 수 있게.
 
-## 핵심 기능 (단계)
-1. 설계 확인 ✅ · 2. 기반 세팅 ✅ · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 ✅ · 4. 숨은 재능 발굴 ✅ · 5. 합의 도우미 + 부탁 쪼개기 ✅ · 6. AI 매칭 + 목표 경로 ✅ · 7. 후기 + AI 후기 분석 + 보너스 ✅ · 8. 데모 준비(시드·시나리오·배포) ✅
+## 기능 단계 (모두 완료)
+1. 설계 확인 · 2. 기반 세팅 · 3. 토큰 지갑 + 재능 마켓 + 거래 흐름 · 4. 숨은 재능 발굴 · 5. 합의 도우미 + 부탁 쪼개기 · 6. AI 매칭 + 목표 경로 · 7. 후기 + AI 후기 분석 + 보너스 · 8. 데모 준비(시드·시나리오·배포)
 
 ## 기술 스택
 - 프론트: Next.js 16 (App Router, TS strict), Tailwind CSS 4 — `frontend/`
-  - ⚠️ Next 16은 학습 데이터와 API가 다를 수 있음. 코드 작성 전 `frontend/node_modules/next/dist/docs/` 확인.
+  - 주의: Next 16은 학습 데이터와 API가 다를 수 있음. 코드 작성 전 `frontend/node_modules/next/dist/docs/` 확인.
 - 백엔드: FastAPI, SQLAlchemy 2 (동기 세션), Alembic, Pydantic v2 — `backend/`
 - DB: PostgreSQL 16 + pgvector (`pgvector/pgvector:pg16` 이미지)
 - AI: LLM = Gemini API 무료 등급 (Google AI Studio), 임베딩 = 로컬 `BAAI/bge-m3` (1024차원)
@@ -32,13 +32,13 @@ docker compose exec backend alembic revision -m "설명"   # 마이그레이션 
 docker compose exec -e PYTHONIOENCODING=utf-8 backend python -m seed.seed --reset --yes   # 데모 시드 (DB 전체 초기화!)
 cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 검사
 ```
-- ⚠️ 이 PC는 Windows 애플리케이션 제어 정책이 SQLAlchemy·argon2의 네이티브 DLL을 차단한다. **백엔드는 로컬 venv가 아니라 Docker 안에서 실행·테스트**한다. (로컬은 `py -3 -m compileall`로 문법 검사만 가능)
+- 주의: 이 PC는 Windows 애플리케이션 제어 정책이 SQLAlchemy·argon2의 네이티브 DLL을 차단한다. 백엔드는 로컬 venv가 아니라 Docker 안에서 실행·테스트한다. (로컬은 `py -3 -m compileall`로 문법 검사만 가능)
 - API 문서: http://localhost:8000/docs
 - Docker Desktop은 사용자 단위로 설치됨: `C:\Users\james\AppData\Local\Programs\DockerDesktop\resources\bin`. 새 터미널이 아니면 PATH에 없을 수 있어서 Claude의 Bash에서는 `export PATH="/c/Users/james/AppData/Local/Programs/DockerDesktop/resources/bin:$PATH"` 후 사용.
 - 프론트는 compose 컨테이너로 :3000을 쓴다. 로컬 `npm run dev`와 동시에 띄우면 포트가 충돌한다.
 
 ## 코딩 규칙
-- **토큰 잔액은 `app/services/ledger.py`의 `transfer()`로만 바꾼다.** `balance`를 직접 수정하지 않는다.
+- 토큰 잔액은 `app/services/ledger.py`의 `transfer()`로만 바꾼다. `balance`를 직접 수정하지 않는다.
   - `transfer()`는 커밋하지 않는다(호출자 트랜잭션에 포함). 계정 행은 id 순서로 `FOR UPDATE`.
   - 모든 이동에 의미 있는 `idempotency_key`를 준다 (예: `signup:{user_id}`, `escrow:{exchange_id}`, `payout:{exchange_id}`).
 - 커밋은 라우터(유스케이스 끝)에서 `db.commit()`. 서비스는 커밋하지 않는다.
@@ -105,7 +105,7 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 ## 후기 기한·환급 (`services/review_policy.py`, `bonus.decide_reviewer_reward`)
 - 요청자는 완료 후 `REVIEW_DEADLINE_DAYS`(7일) 안에 후기. 기한 안 + AI `review_quality` ≥ 70 + 30자 이상 → 거래가 10% 환급 (`review_reward:{exchange_id}`, 보너스 풀)
 - 기한을 넘긴 미작성 후기가 있으면 `CurrentUser` 의존성이 403 `SERVICE_BLOCKED`. 막혀도 열려 있어야 하는 엔드포인트는 `LoggedInUser` 사용 (auth/me, 거래 상세, 후기 쓰기·재분석·조회)
-- 새 엔드포인트를 만들 때: 기본은 `CurrentUser`. 막힌 사람도 써야 하면 `LoggedInUser` (README 결정 사항과 맞출 것)
+- 새 엔드포인트를 만들 때: 기본은 `CurrentUser`. 막힌 사람도 써야 하면 `LoggedInUser` (`docs/decisions.md`와 맞출 것)
 - 막힌 사용자의 상품·재능은 `review_policy.blocked_user_ids()`로 마켓·매칭에서 제외, 요청도 거부
 - 프론트: `ReviewGate`(layout)가 마감 배너 / 차단 화면, API가 SERVICE_BLOCKED를 주면 `REFRESH_ME_EVENT`로 내 정보 갱신
 
@@ -113,7 +113,7 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - `exchange_messages`(exchange_id, sender_id, kind user/system, body) + `exchanges.requester_last_read_id / provider_last_read_id`
 - 상태: open(accepted·cancel_requested·completed) / readonly(수락 후 cancelled) / closed(그 외)
 - `GET /exchanges/{id}/messages?after_id=` (가져온 데까지 읽음 처리), `POST .../messages`, `GET /exchanges/unread`
-- ⚠️ chat 라우터는 exchanges 라우터보다 먼저 include (`/exchanges/unread`가 `/exchanges/{id}`에 걸리지 않게)
+- 주의: chat 라우터는 exchanges 라우터보다 먼저 include (`/exchanges/unread`가 `/exchanges/{id}`에 걸리지 않게)
 - 상태 안내는 `exchange_flow.post_system()` — 상태를 바꾸는 함수에서 같은 트랜잭션으로 남긴다
 
 ## 임베딩 기준값 (`EMBEDDING_THRESHOLDS`)
@@ -141,10 +141,10 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - Next 16 + Cache Components: `useParams`/`usePathname`/`useSearchParams`를 쓰는 클라이언트 컴포넌트는 `<Suspense>`로 감싸야 빌드된다.
 - 로컬에서 `npm run build`를 하면 `frontend/.next`가 생겨 컨테이너 개발 서버와 섞인다. 빌드 확인 후 `rm -rf frontend/.next` 하고 `docker compose restart frontend`.
 - 로그인 복원 실패 시 401일 때만 토큰을 지운다 (서버 재시작 중 로그아웃 방지).
-- ⚠️ Windows 바인드 마운트에서는 frontend 컨테이너의 핫 리로드가 안 된다. 프론트 코드를 바꾼 뒤에는 `docker compose restart frontend` (또는 컨테이너를 멈추고 로컬 `npm run dev`).
+- 주의: Windows 바인드 마운트에서는 frontend 컨테이너의 핫 리로드가 안 된다. 프론트 코드를 바꾼 뒤에는 `docker compose restart frontend` (또는 컨테이너를 멈추고 로컬 `npm run dev`).
 - 브라우저 패널 스크린샷이 오른쪽이 잘려 보일 때가 있음 → 레이아웃 판단은 JS로 `scrollWidth`/요소 rect 확인.
 - `Field`/`TextArea`의 `className`은 기본 스타일에 '추가'된다 (덮어쓰기 아님). 높이 조절 등에 사용.
-- AI 결과 UI 공통 컴포넌트: `AiBadge`(✨ AI 제안), `AiLoading`(문구 순환 로딩), 실패 시 ErrorBox + "다시 시도".
+- AI 결과 UI 공통 컴포넌트: `AiBadge`(AI 제안 글자 표시), `AiLoading`(문구 순환 로딩), 실패 시 ErrorBox + "다시 시도".
 
 ## 디자인 규칙 (개편 후)
 - 색 토큰(globals.css): background 크림, foreground, muted, line, brand(주황), danger, success. radius는 전부 0.
@@ -153,4 +153,8 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run build   # 프론트 �
 - 로딩은 `PageLoading`/`LogoSpinner`(components/Logo.tsx), AI 로딩은 `AiLoading`. "불러오는 중…" 글자만 쓰지 말 것.
 
 ## 결정 사항
-README.md의 "결정 사항" 섹션이 기준. 바뀌면 둘 다 갱신.
+`docs/decisions.md`가 기준. 바뀌면 이 파일과 함께 갱신.
+
+## 문서 문체 (README·docs)
+- 이모지, 경고 아이콘, 인용 상자 콜아웃(`>`, `[!NOTE]`), 배지, 과장된 라벨을 쓰지 않는다. 굵게도 아낀다.
+- 위계는 제목 단계와 문단, 표로만. 사실을 담담하게 쓴다.

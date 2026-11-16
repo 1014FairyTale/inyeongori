@@ -1,77 +1,74 @@
-# 배포 가이드 (Railway + Vercel)
+# 배포 가이드
 
-구성: **Railway** = 백엔드(FastAPI) + PostgreSQL(pgvector), **Vercel** = 프론트(Next.js)
+백엔드(FastAPI)와 PostgreSQL(pgvector)은 Railway에, 프론트(Next.js)는 Vercel에 올립니다. 순서대로 하면 30분 정도 걸립니다. 계정 만들기, 로그인, 결제 정보 입력은 직접 합니다.
 
-> 배포 환경에서는 임베딩을 로컬 bge-m3 대신 **Gemini 임베딩 API**로 써요 (결정 사항 참고).
-> 이미지가 약 2.2GB → 수백 MB로 줄고, 서버 메모리도 적게 들어요. 같은 1024차원이라 DB 구조는 같아요.
-
-계정 만들기·로그인·결제 정보 입력은 직접 해 주세요. 아래 순서대로 하면 30분 정도 걸려요.
-
----
+배포 환경에서는 임베딩을 로컬 bge-m3 대신 Gemini 임베딩 API로 계산합니다. 백엔드 이미지가 약 2.2GB에서 380MB로 줄고 메모리도 적게 씁니다. 둘 다 1024차원이라 DB 구조는 같습니다. 이유는 [결정 사항](decisions.md)의 D2-1에 있습니다.
 
 ## 1. GitHub에 올리기
-Railway와 Vercel은 GitHub 저장소에서 코드를 가져가요.
-1. GitHub에서 새 저장소를 만들어요 (Private 추천).
-2. 프로젝트 폴더에서:
-   ```bash
-   git remote add origin https://github.com/<내 계정>/inyeongori.git
-   git push -u origin main
-   ```
-   - 커밋에 들어간 이메일이 공개돼요. 숨기려면 GitHub 설정의 noreply 주소로 바꾼 뒤 올리세요.
-   - `.env`는 올라가지 않아요 (`.gitignore`에 포함).
 
-## 2. Railway: 데이터베이스
-1. https://railway.com → New Project → **Deploy a template** → `pgvector` 검색 → PostgreSQL + pgvector 템플릿 선택
-   - 일반 PostgreSQL에는 pgvector 확장이 없을 수 있어요. 마이그레이션이 `CREATE EXTENSION vector`를 실행하니 꼭 pgvector가 있는 DB여야 해요.
-2. 만들어지면 DB 서비스의 **Variables**에서 `DATABASE_URL`이 보이는지 확인해요.
+Railway와 Vercel은 GitHub 저장소에서 코드를 가져갑니다.
 
-## 3. Railway: 백엔드
-1. 같은 프로젝트에서 **New → GitHub Repo** → 이 저장소 선택
-2. 서비스 **Settings**
-   - Root Directory: `backend`
-   - (railway.json 덕분에 Dockerfile 빌드·헬스체크가 자동 설정돼요)
-3. 서비스 **Variables**에 아래를 넣어요
+```bash
+git remote add origin https://github.com/<계정>/inyeongori.git
+git push -u origin main
+```
 
-   | 이름 | 값 |
-   |---|---|
-   | `DATABASE_URL` | `${{ Postgres.DATABASE_URL }}` (DB 서비스 이름에 맞게. 자동 변환돼요) |
-   | `JWT_SECRET` | 긴 랜덤 문자열 (`py -c "import secrets; print(secrets.token_urlsafe(48))"`) |
-   | `CORS_ORIGINS` | Vercel 주소 (4단계 후에 채워요. 예: `https://inyeongori.vercel.app`) |
-   | `AI_MOCK` | `false` (키 없이 시연하려면 `true`) |
-   | `GEMINI_API_KEY` | AI Studio 키 |
-   | `LLM_MODEL` | `gemini-3.5-flash-lite` |
-   | `EMBEDDING_PROVIDER` | `gemini` |
-   | `EMBEDDING_MODEL` | `gemini-embedding-001` |
-   | `EMBEDDING_DIM` | `1024` |
-   | `INSTALL_EMBEDDINGS` | `false` (빌드 인자: PyTorch를 설치하지 않아요) |
-   | `SEED_PASSWORD` | 데모 계정 비밀번호 (공개 배포라면 기본값 말고 새로 정하세요) |
+`.env`와 `.env.railway`는 `.gitignore`에 들어 있어 올라가지 않습니다. 커밋 작성자 이메일은 공개 저장소에서 누구나 볼 수 있으니, 숨기려면 GitHub의 noreply 주소로 바꾼 뒤 올립니다.
 
-   - 저장소가 목록에 없으면 **Configure GitHub App**에서 이 저장소 접근을 허용하고 Refresh 해요.
-   - `PORT` = `8000`도 넣어 두면 4번 도메인 포트와 헷갈리지 않아요.
-4. **Settings → Networking → Generate Domain**으로 주소를 만들어요 (포트 `8000`, 예: `https://inyeongori-production.up.railway.app`).
-5. 배포가 끝나면 `https://<백엔드 주소>/api/v1/health` 가 `{"status":"ok", ...}` 를 돌려주는지 확인해요.
-6. 시드 데이터 넣기: Variables에 `SEED_IF_EMPTY` = `true`를 추가하면, 서버가 켜질 때 **DB에 사용자가 없을 때만** 데모 시드를 넣어요 (약 30초, 백그라운드).
-   - 이미 사용자가 있으면 아무것도 하지 않아요. 처음부터 다시 넣고 싶으면 CLI(`railway run python -m seed.seed --reset --yes`)를 써요.
-   - 시드 계정 비밀번호는 `SEED_PASSWORD` 값이에요.
+## 2. Railway 데이터베이스
 
-## 4. Vercel: 프론트엔드
-1. https://vercel.com → Add New → Project → 이 저장소 Import
-2. **Root Directory**: `frontend` (Framework는 Next.js로 자동 인식)
-3. **Environment Variables**: `NEXT_PUBLIC_API_BASE_URL` = `https://<백엔드 주소>/api/v1`
-4. Deploy → 나온 주소(예: `https://inyeongori.vercel.app`)를 Railway 백엔드의 `CORS_ORIGINS`에 넣고 백엔드를 다시 배포해요.
+1. Railway에서 New Project, Deploy a template을 고르고 `pgvector`로 검색해 PostgreSQL과 pgvector가 함께 있는 템플릿을 고릅니다. 마이그레이션이 `CREATE EXTENSION vector`를 실행하므로 pgvector가 없는 일반 PostgreSQL로는 동작하지 않습니다.
+2. DB 서비스의 Variables에 `DATABASE_URL`이 있는지 확인합니다.
 
-## 실제 배포 기록 (2026-11-14)
-- 프론트: https://inyeongori.vercel.app
-- 백엔드: https://inyeongori-production.up.railway.app (`/api/v1/health`)
-- DB 서비스 이름이 `pgvector`라서 `DATABASE_URL=${{pgvector.DATABASE_URL}}`
-- 변수 원본은 로컬 `.env.railway`(git 제외)에 있어요. 운영 데모 비밀번호는 그 파일의 `SEED_PASSWORD`.
-- CORS 변경은 재배포 후 1~2분 뒤에 반영됐어요.
+## 3. Railway 백엔드
+
+1. 같은 프로젝트에서 New, GitHub Repo를 고르고 이 저장소를 연결합니다. 목록에 저장소가 없으면 Configure GitHub App에서 접근을 허용한 뒤 새로고침합니다.
+2. 서비스 Settings에서 Root Directory를 `backend`로 정합니다. Dockerfile 빌드와 헬스 체크는 `railway.json`이 설정합니다.
+3. 서비스 Variables에 아래 값을 넣습니다.
+
+| 이름 | 값 |
+|---|---|
+| `DATABASE_URL` | `${{ pgvector.DATABASE_URL }}`. DB 서비스 이름에 맞춥니다 |
+| `JWT_SECRET` | 긴 임의 문자열. 예: `py -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `CORS_ORIGINS` | Vercel 주소. 4단계를 마친 뒤 채웁니다 |
+| `AI_MOCK` | `false`. 키 없이 시연하려면 `true` |
+| `GEMINI_API_KEY` | AI Studio에서 받은 키 |
+| `LLM_MODEL` | `gemini-3.5-flash-lite` |
+| `EMBEDDING_PROVIDER` | `gemini` |
+| `EMBEDDING_MODEL` | `gemini-embedding-001` |
+| `EMBEDDING_DIM` | `1024` |
+| `INSTALL_EMBEDDINGS` | `false`. PyTorch를 설치하지 않습니다 |
+| `SEED_PASSWORD` | 데모 계정 비밀번호. 기본값 대신 새로 정합니다 |
+| `PORT` | `8000` |
+
+4. Settings, Networking, Generate Domain에서 포트 8000으로 주소를 만듭니다.
+5. 배포가 끝나면 `https://<백엔드 주소>/api/v1/health`가 `{"status":"ok", ...}`를 돌려주는지 확인합니다.
+
+### 데모 데이터
+
+- `SEED_IF_EMPTY=true`를 넣으면 서버가 켜질 때 사용자가 한 명도 없을 때만 시드를 넣습니다. 30초쯤 걸립니다.
+- 이미 데이터가 있는 상태에서 처음부터 다시 넣으려면 `SEED_RESET_KEY`에 새 값(예: 날짜)을 넣고 배포합니다. 서버가 시작할 때 한 번만 모든 데이터를 지우고 시드를 다시 넣고, 적용한 값을 DB에 기록해 둡니다. 같은 값으로는 다시 지우지 않으니 변수는 그대로 두어도 됩니다. 가입한 사용자의 계정도 함께 지워지니 주의합니다.
+
+## 4. Vercel 프론트엔드
+
+1. Vercel에서 Add New, Project를 고르고 이 저장소를 가져옵니다.
+2. Root Directory를 `frontend`로 정합니다. Next.js는 자동으로 인식됩니다.
+3. Environment Variables에 `NEXT_PUBLIC_API_BASE_URL` = `https://<백엔드 주소>/api/v1`을 넣습니다.
+4. 배포가 끝나면 나온 주소를 Railway 백엔드의 `CORS_ORIGINS`에 넣고 백엔드를 다시 배포합니다. 반영까지 1~2분 걸립니다.
 
 ## 5. 확인
-- Vercel 주소 접속 → 가입 → 100토큰 → "AI가 내 재능 찾아 주기"
-- 브라우저 개발자 도구에 CORS 에러가 나면 `CORS_ORIGINS` 값(끝에 `/` 없이)을 확인해요.
 
-## 비용·제한 메모
-- Gemini 무료 등급은 분당 호출 수 제한이 있어요. 시연 중 연속으로 많이 누르면 "AI 무료 사용 한도를 넘었어요"가 나올 수 있어요 → 잠시 후 다시 시도.
-- Railway는 사용량 기반 과금이에요. 시연이 끝나면 서비스를 멈춰 두면 비용이 거의 안 나와요.
-- 시연 직전에 AI가 불안하면 `AI_MOCK=true`로 바꾸면 고정 예시로 모든 기능이 돌아가요 (임베딩도 mock으로 바뀌니 시드를 다시 넣어야 매칭이 맞아요).
+Vercel 주소에서 가입하고 100토큰이 들어오는지, "AI가 내 재능 찾아 주기"가 동작하는지 봅니다. 브라우저 개발자 도구에 CORS 오류가 나오면 `CORS_ORIGINS` 값 끝에 `/`가 붙어 있지 않은지 확인합니다.
+
+## 현재 운영 환경
+
+- 프론트: https://inyeongori.vercel.app
+- 백엔드: https://inyeongori-production.up.railway.app
+- DB 서비스 이름이 `pgvector`라서 `DATABASE_URL=${{pgvector.DATABASE_URL}}`를 씁니다.
+- 변수 원본은 로컬의 `.env.railway`(git 제외)에 있습니다. 운영 데모 비밀번호도 이 파일의 `SEED_PASSWORD`입니다.
+
+## 비용과 제한
+
+- Gemini 무료 등급은 분당 호출 수에 제한이 있습니다. 시연 중 연달아 누르면 무료 사용 한도 메시지가 나올 수 있으니 잠시 후 다시 시도합니다.
+- Railway는 사용량만큼 과금합니다. 시연이 끝나면 서비스를 멈춰 두면 비용이 거의 들지 않습니다.
+- 시연 직전에 AI가 불안하면 `AI_MOCK=true`로 바꿉니다. 임베딩도 예시 방식으로 바뀌므로 시드를 다시 넣어야 매칭 결과가 맞습니다.
